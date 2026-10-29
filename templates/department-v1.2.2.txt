@@ -1,0 +1,475 @@
+# Web of Science Research Intelligence
+## Department Research Intelligence Template v1.2.2
+### Self-Contained Quality Assurance Evidence Edition｜比較基準、分母、出版年度與 APA 7th 精修版
+
+> 使用方式：只需修改下列 GLOBAL PARAMETERS，其餘分析指令原則上不需變動。本模板以 WoS / Research Intelligence 可取得的資料作為研究成果分析基礎，並將《國立陽明交通大學自主辦理系所品質保證實施計畫》中**七項品保項目及自評報告四個撰寫面向，直接內建於本 Prompt**。**RI 不需、亦不得假設自己能讀取任何外部網址、校內文件或其他平台。**本模板僅提供研究相關佐證，不等同完整系所評鑑、自評結論或校方正式認定。
+
+# GLOBAL PARAMETERS｜唯一需要日常編輯的設定區
+
+```yaml
+# 1. BASIC SETTINGS
+INSTITUTION: "National Yang Ming Chiao Tung University"
+COLLEGE: "College of Management"
+DEPARTMENT: "Institute of Information Management"
+START_YEAR: 2021
+END_YEAR: 2025
+TOP_N: 10
+DOCUMENT_TYPE_SCOPE: "ALL_AVAILABLE"
+OUTPUT_LANGUAGE: "Traditional Chinese (Taiwan)"
+
+# 2. LEVEL 1 — CORE RESEARCH ANALYSIS
+INCLUDE_DEPARTMENT_DIAGNOSTICS: true
+INCLUDE_RESEARCHER_ANALYSIS: true
+INCLUDE_COLLABORATION_ANALYSIS: true
+INCLUDE_STRATEGIC_RECOMMENDATIONS: true
+INCLUDE_REFERENCES: true
+INCLUDE_DOI: true
+REFERENCE_STYLE: "APA 7th edition"
+
+# 3. LEVEL 2 — QUALITY ASSURANCE SUPPORT（預設啟用）
+INCLUDE_EVALUATION_SUPPORT: true
+INCLUDE_EVIDENCE_GAP_ANALYSIS: true
+INCLUDE_SELF_EVALUATION_DRAFT: true
+EVALUATION_FRAMEWORK: "NYCU_SELF_QA"
+# 可留空；不應將 WoS 出版年度視為官方學年度資料期間
+EVALUATION_REFERENCE_PERIOD: ""
+# 自訂內容皆為選填；空白時不得自行編造系所使命或額外效標
+DEPARTMENT_MISSION: ""
+DEPARTMENT_STRATEGIC_GOALS: ""
+ADDITIONAL_EVALUATION_CRITERIA: ""
+
+# 4. LEVEL 3 — OPTIONAL COMPARATIVE ANALYSIS
+COMPARE_WITH_COLLEGE: false
+INCLUDE_BENCHMARK: false
+# 填寫「學校 + 系所」的可識別名稱；可填 1–4 組，空白者略過
+BENCHMARK_1: ""
+BENCHMARK_2: ""
+BENCHMARK_3: ""
+BENCHMARK_4: ""
+```
+
+---
+
+# PART I. GLOBAL EXECUTION & DATA QUALITY RULES
+
+## A. 全域變數與模組控制
+
+1. 把上方參數視為本次分析的全域常數。正文中 `{{VARIABLE_NAME}}` 一律使用對應參數值；不得自行修改。`""` 表示未指定；`true` 啟用，`false` 關閉。
+2. `{{START_YEAR}}–{{END_YEAR}}` 是唯一的 WoS **出版年度篩選**範圍；正文不得固定寫入「近五年」或預設年份。所有年度趨勢、近期成果、主題演變和比較均依此動態計算。
+3. `{{TOP_N}}` 控制列表展示筆數，**不限制整體統計的資料集合**。`{{DOCUMENT_TYPE_SCOPE}} = ALL_AVAILABLE` 表示納入實際查詢可取得的所有 WoS 文獻類型，並揭露其類型與數量。
+4. `INCLUDE_RESEARCHER_ANALYSIS=false` 時略過研究者名單、Rising Contributors 和具名研究者群聚分析；不影響論文或主題層級成果。
+5. `INCLUDE_COLLABORATION_ANALYSIS=false` 時略過合作專章；其他章節不得自行做未經分析的合作判斷。
+6. `INCLUDE_DEPARTMENT_DIAGNOSTICS=false` 時略過完整能力地圖與缺口診斷，但基礎績效分析保留。
+7. `INCLUDE_STRATEGIC_RECOMMENDATIONS=false` 時不產生具體策略行動、發展優先次序或改善方案；仍可客觀說明量化表現缺口。
+8. `INCLUDE_EVALUATION_SUPPORT=false` 時略過全部 Level 2 品保內容；若為 true，依 `INCLUDE_EVIDENCE_GAP_ANALYSIS`、`INCLUDE_SELF_EVALUATION_DRAFT` 分別決定是否產出資料缺口與自評段落草稿。
+9. `COMPARE_WITH_COLLEGE=true` 才分析所屬學院；`INCLUDE_BENCHMARK=true` 才分析有效填寫的 `{{BENCHMARK_1}}` 至 `{{BENCHMARK_4}}`。未啟用者不得偷偷比較，使用者未指定者不得自行新增。
+10. `INCLUDE_REFERENCES=true` 才產出正式 APA 7th References；`INCLUDE_DOI=true` 才要求輸出可確認 DOI，不得猜測或生成。
+11. 設定 `EVALUATION_FRAMEWORK=NYCU_SELF_QA` 時，**只使用本 Prompt 第 15 模組已內建的七項品保項目與撰寫要求**，不得嘗試開啟官方網址、要求上傳檔案，或聲稱已即時查閱校方網站。如改為 `CUSTOM`，僅依 `ADDITIONAL_EVALUATION_CRITERIA` 實際填寫的效標與通用 WoS 研究證據製作對應；若無可用正式效標，應說明無法驗證該校評鑑要求。
+12. 空白的 `DEPARTMENT_MISSION`、`DEPARTMENT_STRATEGIC_GOALS`、`ADDITIONAL_EVALUATION_CRITERIA` 不得自行編造；可在品保佐證清單註記「建議由系所補充」。
+13. 若學校或系所不屬於 NYCU，`EVALUATION_FRAMEWORK=NYCU_SELF_QA` 僅供**研究佐證整理的參考**，不得聲稱為該校正式適用規範；亦不得自行推定院級／系級增列的效標。
+14. 每次輸出須保持三種時間一致：**WoS 出版年、RI 實際查詢／擷取日、品保參考期間**；不得用查詢日代替資料庫實際更新日。
+15. **外部資料存取限制**：整份分析不得依賴連結、網頁瀏覽、PDF 讀取或未提供的校務文件。官方計畫名稱僅是品保架構標籤；必要的品保要求已完整寫於第 15 模組。若某項要求需校內資料，直接列出「待系所補充」，不得要求 RI 自行前往網站蒐集。
+
+## B. 時間一致性、完整出版年度與品保期間
+
+1. WoS 分析只以出版年度 `{{START_YEAR}}–{{END_YEAR}}` 篩選。必要時先檢查 `START_YEAR <= END_YEAR`；若 `END_YEAR` 晚於實際查詢當年的年份，**不得推定未來年度已有完整資料**，應說明有效資料範圍。
+2. **出版年是否完整取決於查詢日期，而非分析區間中的相對位置**：當 `END_YEAR` 小於實際查詢所在曆年，該出版年度在曆法上已結束；不得寫成「該年度尚未完整」。但已結束年度仍可能存在 WoS 索引延遲、Early Access／正式出版年歸屬或後續補收錄。
+3. 若 `END_YEAR` 等於實際查詢曆年，應標示「本年度截至查詢日，屬未完結年度資料（year-to-date）」，避免直接用完整年度產出量評價當年度；若 RI 未提供查詢日，則不要自行推斷是否完整。
+4. **Publication Volume / Indexing Lag 與 Citation Window 必須分開**：年度 Documents 下降只能列出「實際出版變化、索引延遲、Early Access 歸屬、地址辨識」等*待查可能因素*；citation window 是引用累積時間的限制，**不能直接解釋發表篇數下降**。
+5. 「近期」通常指分析集合末端 1–2 個出版年度，**但 citation window 應依文獻實際出版時間至可確認資料截點的間隔判斷**。分析歷史區間（例如結束於多年前）時，不得一律宣稱最後兩年引用窗太短。
+6. 研究主題分期可用 Early / Middle or Transition / Recent Period，依年度成果、研究主題及正規化影響力合理劃分；資料不足時不強制分期。
+7. `EVALUATION_REFERENCE_PERIOD` 是另一種期間：它可能為學年度、學期或特定日期區間，**與 WoS 出版年不同**。若留空，只提供期間口徑提醒；不得推定 RI 統計已完整符合校方評鑑期間。
+8. NYCU 第四週期官方計畫提及自評報告資料以「111 學年度至 114 學年度第一學期」為主。這是**本 Prompt 已內建的品保參考資訊**，不自動改寫 WoS 出版年度，也不推定所產出研究數據已涵蓋所有校內品保資料。
+9. 若指定的品保期間與 WoS 查詢期間無法精確對齊，於 Level 2 標示「WoS 研究佐證的出版年口徑不同，需由系所依品保資料期間核對」。
+10. **資料庫實際更新日與 RI 查詢日不同時不可混稱**：若只能確認查詢日期，請寫「查詢日」，將資料更新／擷取截點標示「未提供」。
+
+## C. 實體、涵蓋範圍及研究者身分
+
+1. 使用 RI Entity Normalization 分別辨識 `{{INSTITUTION}}`、`{{COLLEGE}}`、`{{DEPARTMENT}}`，記錄原始輸入、標準化名稱、實體路徑及實際篩選條件。
+2. 若無法精確辨識系所，不得以學院或全校成果代替；應說明無法取得與可能的歸屬風險。
+3. 系所成果以 WoS 可解析之 affiliation / address 為範圍，可能受名稱變體、組織改制、跨單位署名及索引涵蓋限制影響。
+4. Key Contributors 指本次**系所成果集合中的作者**，不等於現職教師名單；Primary Affiliation 不代表整個期間的正式任職證明。
+5. 說明實際索引資料、Document Types、Early Access／正式出版年的歸屬規則、資料擷取日期（如可確認）與研究集合限制。
+6. 對偏重專書、中文成果、創作、實務成果的學科，必須註明 WoS 涵蓋不完整；不得把沒有 WoS 紀錄解讀成沒有研究能力。
+
+## D. 指標解讀、百分比分母與比較基準可比性
+
+1. 區分 Research Productivity、Citation Impact、Normalized Impact 與 High-Impact Research，不用單一指標宣告研究品質、人事優劣或管理因果效果。
+2. **指標內建的理論／正規化基準（Methodological Reference）**：CNCI、JNCI 以各自定義的正規化期望值 1 為解讀參考；Top 10%／Top 1% 以其方法學期望比例 10%／1% 為參考。可描述高於或低於該基準，**但這只是描述性差異，不能自動等同統計顯著、實質優劣或整體系所能力不足**。如已知符合條件的文件數偏少，須同時說明比例的不穩定性。
+3. **全球全資料庫總體值（Global Aggregate Descriptive Reference）**：RI 若回傳全球 Documents、Times Cited、Citations per Paper、International Collaboration Percentage、Industry Collaboration Percentage、Q1 JIF Percentage 等整體數值，須註明其母體、年份、索引與文件類型（如可取得）。若**未確認學科領域、實體層級、文件類型及計算口徑可比**，只能用作背景參考；不可當成資訊管理、醫學、人文等任一系所的「同領域期望值」或已確認弱點判定依據。**不得把全球全部 Documents 或總 Times Cited 與個別系所的規模直接並列用來評價系所規模。**
+4. **真正的比較對象（Matched Comparator）**：只有在 `COMPARE_WITH_COLLEGE` 或 `INCLUDE_BENCHMARK` 啟用，且已確認組織層級、學科範圍、出版年、文件類型與指標口徑可比較時，才將比較結果稱為「相對於指定單位的差距／優勢」。若仍有不可比限制，須將其列於表格並降低結論強度。
+5. 對所有百分比，包括**研究者個人／研究成果集合層級**的 Top 10%、Top 1%、Q1 JIF、International Collaboration、Cited Papers Percentage、Research Area、Publication Sources 等，分開呈現：**Raw Count、RI Reported Percentage、Eligible Denominator（若可取得）、Eligibility Rule / Data Status**。
+6. 百分比分母已知時，按原資料說明；未知時，明確標示 `Denominator not provided by RI`，保留 RI 原始值但不可將它當作 `Count / Total Documents` 的直接計算結果。即使 `Count ÷ Total Documents` 與回傳比例不一致，也**不可擅自改值、補分母或反推分母**；須加註可能的 eligibility / coverage 差異，並標示待驗證。
+7. **特別處理研究者表格**：例如一位研究者列有 Documents、Top 10% Papers 及 Top 10% Percentage 時，不應用 `1/6.25%` 或類似容易暗示共用分母的緊湊寫法；改為分欄 `Documents`、`Top 10% Count`、`RI Top 10% %`、`Eligible N / Basis`。當 Eligible N 未知時務必註明。
+8. Research Areas / Citation Topics 可能重疊，不得把各類別的 Documents 加總當作系所總量；小樣本高 CNCI 或高百分位比例應揭露樣本規模。
+9. JIF／Quartile 不等於個別論文品質。全域研究合作比例不等於相同學科系所的合作期望值；不得把全球與系所比例的算術差異直接列入 `Confirmed Performance Gaps`。
+
+## E. 資料品質檢核（正式輸出前必須執行）
+
+1. 將指標分為 Confirmed Zero、Not Available、Not Applicable、Unverified Value。若 Times Cited 大於零、Times Cited without Self-Citations 卻回傳零等可疑情況，請標示 Unverified，不得直接解讀。
+2. 檢查所有比較句的**Reference Type**：`Methodological Reference`、`Global Aggregate Descriptive Reference` 或 `Matched Comparator`，並依第 D 節限制解讀。若僅有全球整體值，不得將比較結果升格為「系所相對弱點」或「同領域差距」。
+3. 分開解讀 Documents Trend 與 Citation Trend；凡已結束的出版曆年不得稱為「年度尚未完整」，仍可說明資料庫可能後補收錄；僅查詢當年的出版年度可標示尚未結束。
+4. 國際合作名單須排除目標機構本身；本國合作機構與海外機構分開列示。若原資料為全部共同發表單位，應先辨識其範圍。
+5. 「Top 10% 比例較高」與「平均 CNCI 高於世界基準」是兩種不同判讀，不能合併稱為全面高影響。
+6. 檢查年度、文獻類型與總量間的數據一致性；各層級／研究者百分比如無法確認分母，**保留 RI 原值並註明 eligible denominator 未提供**，不可任意補數或重算。
+7. **APA 7th**：正式參考文獻應依第一作者姓氏字母排序；不得使用 `et al.` 作為參考文獻表的作者列示捷徑。20 位以下作者須全部列示；21 位以上使用**前 19 位作者、刪節號、最後 1 位作者**的 APA 7th 規則。作者順序、姓名縮寫須與可查證書目資料一致；不足則標記待核。
+8. 檢查題名、出版年、期刊、卷期、頁碼／文章編號與 DOI。若 RI 沒有提供某些欄位，**不得從 DOI 字串猜測**或由自身記憶補全；在書目品質註記中指出缺漏並標記 `Bibliographic metadata incomplete`。不得將不完整的引用標榜為已完成核對的正式 APA 條目。
+9. 所有診斷的「可能解釋」只可標示為待驗證假說，不得寫成已確認原因；策略建議不得保證會提高引用指標。
+10. 正式輸出前，確認 OUTPUT A 與 OUTPUT B 使用相同研究集合、同一組 RI 指標、代表作及 DOI，且各種比較基準之限制與時間口徑一致。
+
+## F. 正式報告呈現
+
+正式報告不得顯示內部參數、`INCLUDE_XXX = true` 等控制語句。未啟用的模組不產出空章節；已啟用但資料不足的模組說明「可取得資料／缺漏／限制」。必要的數據以表格呈現，重大結論均須能回溯至資料或具體論文。中文一律使用臺灣繁體中文。
+
+---
+
+# PART II. ANALYSIS OBJECTIVE
+
+請分析：
+
+- **Institution**：`{{INSTITUTION}}`
+- **College**：`{{COLLEGE}}`
+- **Department**：`{{DEPARTMENT}}`
+- **WoS Publication Years**：`{{START_YEAR}}–{{END_YEAR}}`
+
+目標是建立可供不同系所共用的 **Department Research Intelligence Profile**，呈現研究績效、研究專長、主題演變、主要貢獻研究者、代表性成就、研究能力、研究表現缺口、國際合作及證據導向發展方向。若啟用 Level 2，將這些**已有的 WoS 研究證據**對應到自主辦理系所品質保證相關項目，提供可檢核的研究佐證及待補資料清單；不代替整體評鑑、自評結果認定或非 WoS 校務資料。
+
+---
+
+# PART III. RESEARCH ANALYSIS MODULES（沿用並強化 v1.1）
+
+## 01. Entity & Data Scope｜實體辨識與資料口徑
+
+先完成 Entity Normalization，呈現：Original Input、Normalized Entity、Parent Institution／College、Entity Type、Entity Path、Actual Entity Used、WoS Scope、Publication Years、Document Types、Query / Retrieval Date（如可確認）。
+
+說明地址解析、同一論文多系所歸屬、名稱沿革、Early Access、資料庫涵蓋與是否可代表完整教師成果的限制。若無法確定系所實體，停止以該實體推導可靠的系所指標，並明確標示問題。
+
+## 02. Overall Research Performance｜整體研究績效
+
+如可取得，提供 Documents、Times Cited、Times Cited without Self-Citations、Citations per Paper、Cited Papers Percentage、CNCI、JNCI、Top 10% / Top 1% 件數及比例、Highly Cited Papers、Hot Papers、h-index、Q1 JIF Papers 及比例、International Collaboration Papers 及比例。
+
+依 Productivity / Citation Impact / Normalized Impact / High-Impact Research 分類。明確說明 CNCI、JNCI 與相應正規化基準 1，Top 10%／Top 1% 與方法學期望比例的關係；高影響成果的件數、比例及 eligible denominator（若可確認）需分開表達。若 RI 回傳全球整體資料，另以 `Global Aggregate — Descriptive Only` 標示，**不要將全球總文獻數或總引用數與系所直接列為規模排名**，也不要將未匹配學科的全球比例直接宣稱為系所弱項。
+
+## 03. Annual Research Trend｜年度研究趨勢
+
+逐年提供 Year、Documents、Times Cited、CNCI、JNCI、Top 10% Papers 及比例、Top 1% Papers；若可取得再加 Q1 JIF % 與 International Collaboration %。
+
+指出產出與正規化影響力各自的變化、可能轉折及高影響成果集中年度。**判斷分析末年是否完整時，使用實際查詢所在曆年**：過去已結束的出版年度，不得寫作「尚未完整」，但可提出索引延遲／Early Access／實際出版變化等待查因素；查詢當年才標記年度截至查詢日（YTD）。Citation window 僅用於評估引用累積，不能直接用以解釋 Documents 下降。
+
+## 04. Research Specialization｜研究專精與核心領域
+
+列出前 `{{TOP_N}}` 個 WoS Research Areas / Categories，含 Documents、Times Cited、CNCI、Top 10% 件數／比例。
+
+辨識 Core、High-Output、High-Impact、High-Output but Lower-Impact、Emerging、Interdisciplinary Areas；再將資料庫分類整合為 3–5 個有實際研究意義的 Research Specialization Themes。每項要有研究問題、對應成果、影響力、代表作及適當證據；不得只將 WoS Category 改名。
+
+## 05. Research Theme Development｜研究主題發展
+
+整合出版年度、Research Areas、Citation Topics、Research Topics、代表作、CNCI、Top 10%／Top 1%，以及 RI 可取得的 Research Front / Topic-related information。
+
+依資料合理區分研究前期／轉折期／近期，辨識 Established、Emerging、Interdisciplinary 及 Growing-Impact Themes。Emerging Theme 不設定僵化最低論文篇數，但必須註明依據；如來源不同步更新，只能在可確認範圍說明時間差，不得假設來源一致。
+
+## 06. Publication Sources｜主要出版來源
+
+列出前 `{{TOP_N}}` 個 Sources，含 Documents、Times Cited、CNCI、Top 10% 件數／比例、JIF／Quartile（若適用）。區分 High-volume、High-impact、Strategically Important Sources，說明主要學術社群與分散／集中情形，不以期刊指標替代個別論文品質。
+
+## 07. Key Research Contributors｜主要成果貢獻研究者
+
+**僅在 `INCLUDE_RESEARCHER_ANALYSIS=true` 時執行。**
+
+列出前 `{{TOP_N}}` 位成果貢獻者：Name、Documents、Times Cited、CNCI、**Top 10% Count、RI Top 10% Percentage、Eligible Denominator / Basis（若可取得）**、h-index、Primary Affiliation、ResearcherID、ORCID（若可取得）。將件數與百分比分欄，不得在尚未確認分母前假定研究者的全部 Documents 就是百分比分母；對分母不明確者加註 `Denominator not provided by RI`，且不得重算或反推。區分 High-output、High-impact、Both；分析主題貢獻及可驗證共著群聚。**不得稱其為現職教師名冊，也不得以主題相似認定正式研究團隊。**
+
+## 08. Rising / Emerging Contributors｜近年成長研究者
+
+**隨研究者模組啟用。** 使用年度研究者資料辨識近期產出上升、高 CNCI／Top 10% 新成果及研究影響變化，提供數據、代表作及小樣本限制。這些分類不代表年資、職級或人事評價；缺乏可靠年度資料時標示無法判斷。
+
+## 09. Representative Publications｜代表性研究成果
+
+選出分析期間 `{{TOP_N}}` 篇成果，含完整 Title、Authors、Year、Source、Document Type、Times Cited、CNCI、Top 10% / Top 1% Status、DOI（如啟用且可確認）。兼顧 Most Cited、Highest CNCI、High-percentile 和 Recent High-Potential Publications；解釋其所代表的研究主題與成果限制。若不具全文或摘要資訊，不得編造具體研究結果。
+
+## 10. Contribution to College｜所屬學院內研究定位
+
+**僅在 `COMPARE_WITH_COLLEGE=true` 時執行。** 獨立辨識 `{{DEPARTMENT}}` 與 `{{COLLEGE}}` Entity，統一出版年度與口徑，比較 Documents、CNCI、JNCI、Top 10%／Top 1% 比例、Research Areas、Research Themes。說明系所對學院研究特色的貢獻；只有兩者集合確實具可比較的子集關係時才計算 Documents 占比。跨單位共著不得重複相加，無法辨識學院時不應自行挑選。
+
+## 11. International Collaboration｜國際合作與長期網絡
+
+**僅在 `INCLUDE_COLLABORATION_ANALYSIS=true` 時執行。** 提供 International Collaboration Papers／Percentage、International vs Non-international Collaboration CNCI、年度變化，以及可取得的主要海外國家／地區、機構、合作者及 Research Areas。
+
+海外夥伴排名排除本國與目標機構，國內合作另列。即使 RI 回傳「全球國際合作比例」，若未確認學科與分析口徑相當，仍只能標示 `Global Aggregate Descriptive Reference`，**不得直接列為 Confirmed Gap 或宣稱低於同領域水準**。國際共著的改善空間可透過時序、主題及指定 Benchmark 分析，但須註明證據強度。有跨年度證據才辨識 Long-term Networks；不得把單次共同發表等同於穩定合作關係。
+
+## 12. External Benchmark Analysis｜外部系所比較
+
+**僅在 `INCLUDE_BENCHMARK=true` 時執行。**
+
+有效比較對象只從 `{{BENCHMARK_1}}`、`{{BENCHMARK_2}}`、`{{BENCHMARK_3}}`、`{{BENCHMARK_4}}` 取得，忽略空白、重複或無法精確辨識的對象；四項全空時說明沒有可執行的比較，不得自行選校。
+
+每一組先進行 Entity Normalization，列出 Original Name、Normalized Name、Institution、Entity Type、Comparability Limitation。以與目標系所一致的出版年度及盡可能一致的資料口徑比較 Documents、CNCI、JNCI、Top 10%／Top 1% %、Q1 %、International Collaboration %、Research Specialization 和 Research Themes（部分指標無法取得則註記）。對每個比較項目說明是否已比對組織層級、學科組成、文獻類型、分母與年度；若不可比，保留其差異作描述性參考，不得列為已確認的相對弱點。分析研究規模、正規化影響力、高影響成果、研究專精及差異化特色；組織層級、學科組成與規模不同時提出比較限制。**不得建構無依據的總排名或綜合分數。**
+
+## 13. Department Research Profile｜系所綜合研究畫像
+
+整合研究規模、Normalized Impact、Core Specializations、High-Impact Themes、Research Clusters（若啟用）、Publication Structure、Collaboration Profile（若啟用）、Emerging Directions，以及學院或外部比較（若啟用）。用 3–5 個有數據支援的短語概括系所研究辨識度，避免重複全部統計表。
+
+## 14. Department Research Diagnostics｜系所研究能力與發展診斷
+
+**僅在 `INCLUDE_DEPARTMENT_DIAGNOSTICS=true` 時執行。**
+
+### 14.1 Research Capability Map
+
+選出 3–5 項研究能力，列出 Capability、類型（Established / Specialized / Emerging / Interdisciplinary）、對應研究主題及 Documents、Normalized Impact、代表作、主要成果貢獻者（若啟用）及 Evidence Confidence（Strong / Moderate / Limited）。證據信度描述資料是否充分、是否跨年度、有無可查證文獻，**不是系所能力評分**。
+
+### 14.2 Signature Research Achievements
+
+選 3–5 項具展示價值的學術成就，提供 Achievement Title、Research Contribution、Supporting Publication(s)、Times Cited／CNCI／Percentile、DOI、Significance、Limitation。每項再寫一段可供系所網站或自評報告參考的繁體中文 Achievement Statement；只敘述可由 RI 或具體文獻中繼資料證實的研究問題與成果，不得推稱已完成技轉、商業化、臨床導入或政策影響。
+
+### 14.3 Research Performance Gaps & Challenges
+
+選出 3–5 個有證據的研究表現缺口，列 Research Dimension、Observed Evidence、**Reference Type**（Methodological Reference / Global Aggregate Descriptive Reference / Matched Comparator）、Reference / Baseline、Observed Gap、Possible Explanation（標為待驗證）、Evidence Limitation、Development Opportunity（若策略模組啟用）。明確區分：
+
+- **Confirmed Metric-Level Gap（已確認的指標層級落差）**：例如 CNCI 低於其正常化基準 1，或 Top 10% 比例低於其方法學期望值；屬客觀數據描述，**不是經統計檢定的顯著差異、也不是系所全面弱點**。
+- **Potential Development Challenge（尚待確認的發展挑戰）**：例如國際共著比例低於 RI 回傳的全球*整體*值、主題成果集中或有限年度起伏；需更多同領域比較或系所資料，**不可直接視為 Confirmed Gap**。
+- **Insufficient Evidence（資料不足）**：例如師資、經費、設備、教學、正式產學合作等無法由 WoS 證實之項目。
+
+**CNCI < 1 不等於研究品質低劣；不能據 WoS 推斷師資、經費、設備、教學或產學合作不足。**
+
+### 14.4 Evidence-Based Development Priorities
+
+僅在策略模組啟用時，整合 3–5 項既有能力 × 量化缺口 × Proposed Action × Supporting Evidence × Limitations，作為第 16 模組的策略基礎，避免兩套建議重複；不保證任何行動必然增加 CNCI 或 Top 10%。
+
+### 14.5 Department Research Highlights
+
+整合 Research Capabilities、Research Achievements、Research Gaps、Development Priorities（策略功能啟用時），供放在 Executive Summary 之後。摘要引用之數據、DOI 與詳細報告必須一致。
+
+---
+
+# PART IV. LEVEL 2 — QUALITY ASSURANCE EVIDENCE SUPPORT（內建品保要求，無須外部網址）
+
+## 15. Evaluation Evidence Support｜自主辦理系所品質保證研究佐證支援
+
+**僅在 `INCLUDE_EVALUATION_SUPPORT=true` 時執行。**本模組依下列直接內嵌的品保要求工作；**不可將任何外部網站、連結、檔案或即時查詢當成必要前提**。
+
+### 15.1 Embedded Evaluation Framework｜內建計畫名稱、七項品保項目與適用界線
+
+**品保架構名稱**：《國立陽明交通大學自主辦理系所品質保證實施計畫》
+
+**使用原則**：以下為依該計畫主要品保項目及報告撰寫原則整理的**操作性對照要求**，不是完整法規文本，也不是可取代院級或系級增列效標的清單。RI 應完全依以下已提供內容產出結果，**不得聲稱已閱讀官方網站或掌握最新修訂**。
+
+本期自辦品保的七項主要項目及其研究佐證對應規則如下。**在品保段落引用全球整體比例時，必須同步標示「描述性全球參考、未按學科或系所匹配」，不得將其直接撰寫為本系所的已確認弱點；有匹配比較資料才可寫成指定同儕比較。**
+
+#### QA-1 特色發展
+
+- **品保關注**：系所使命、願景、專業聲望、既有特色，以及專業領域發展方向是否呼應當代學術與專業發展趨勢。
+- **本次 WoS / RI 可以整理**：Core Research Specializations、Research Capabilities、Research Themes、研究主題演變、代表性成就、Citation Topics / Research Fronts（若可取得）、研究成果的可見度與正規化影響力。
+- **應回答的研究相關問題**：有哪些可由文獻證明的核心研究專長？哪些是多年持續的特色？哪些新興主題具有可查證證據？哪些成果可以支持「研究特色」的說法？
+- **不能單憑 WoS 認定**：正式系所使命與願景、校院系發展計畫是否落實、系所整體專業聲望、正式的發展特色是否已由系所核定。
+- **輸出要點**：研究特色敘述 + 主要數據／具體論文 DOI + 「待系所確認使命與發展目標」註記（如有必要）。
+
+#### QA-2 教育目標、課程和教學
+
+- **品保關注**：教育目標、課程結構及學分配置、教學設計及更新、教師在教學與服務評量的專業表現及支持機制。
+- **本次 WoS / RI 可提供的輔助線索**：系所研究主題與新興學術議題，可供系所*自行檢視*課程更新或研究導向教學的參考。
+- **不能單憑 WoS 認定**：課程地圖、學分配置、課綱實際更新、教學成效、學生核心能力、教師教學評量、教學支持機制。
+- **輸出要點**：只列可供系所參考的研究趨勢與「需要教務／系所課程資料驗證」的清單；**不得生成教學成果已達標的敘述**。
+
+#### QA-3 學生和學習資源
+
+- **品保關注**：招生策略、入學後就學管理、學生課業學習、校園學習及生活輔導規劃與執行。
+- **本次 WoS / RI 直接支援**：一般情況下不足；若個別文獻有學生共同作者，也不得據此推論整體學生研究參與或學習成效。
+- **不能單憑 WoS 認定**：招生與學籍、學習成效、學生滿意度、輔導品質、資源使用、學生參與程度。
+- **輸出要點**：明確標註「本次 WoS RI 無法直接佐證」，並列出應由系所／校務來源補充的資料類型；不強制產生無資料的量化分析。
+
+#### QA-4 學術研究
+
+- **品保關注**：學術成就、研究成果、產學合作表現、參與大型研究計畫之成效，以及研究能量與國際學術競爭力。
+- **本次 WoS / RI 核心支援**：Documents、年度研究產出、CNCI、JNCI、Top 10%／Top 1%、Citation Topics、代表性論文、DOI、Research Contributors、Research Capabilities、研究領域及合作研究成果。
+- **應回答的研究相關問題**：研究成果量與影響力如何？最具辨識度的研究能力與成就為何？哪些高影響成果可驗證？哪些研究領域具有成長或改善空間？
+- **不能單憑 WoS 認定**：研究計畫申請／核定金額、大型計畫參與實績、所有非 WoS 研究成果、正式產學合作契約、專利、技轉與全部研究資源。
+- **輸出要點**：這是本報告**主要、最完整的品保佐證項目**；以數據表 + 研究能力地圖 + 3–5 項代表性成就 + DOI + 方法限制呈現。
+
+#### QA-5 產官學合作與社會責任
+
+- **品保關注**：教師產官學合作及系所社會參與與貢獻。
+- **本次 WoS / RI 可提供**：與企業、政府、研究機構共同署名之研究成果（只有在機構類型、作者歸屬可確認時）；與永續、健康、社會議題相關的可驗證學術研究主題。
+- **不能單憑 WoS 認定**：正式合作契約、產學收入、技術移轉、專利、社會服務實施、政策採用、社會影響成效。**研究主題涉及社會議題，不等於已產生可證實的社會影響。**
+- **輸出要點**：僅提供可核實的共著與研究主題線索，另列合作計畫、契約、成果報告及實際影響證據等待補項目。
+
+#### QA-6 國際化
+
+- **品保關注**：與國外教學研究單位、公司或機關的合作與交流成果，以及國際接軌的實際策略與成效。
+- **本次 WoS / RI 可以整理**：International Collaboration Papers／Percentage、年度共著趨勢、海外合作國家／機構、國際合作研究領域及合作成果的正規化引用指標；若有跨年度共著證據，可辨識持續合作線索。
+- **不能單憑 WoS 認定**：學生交換、雙聯學位、國際課程、海外研修、正式 MOU、互訪活動與其他非共著型國際交流成效。
+- **輸出要點**：**限定為「國際研究合作佐證」**；分開呈現國內外合作、樣本規模及限制，不能把論文共著等同所有國際化成果。未啟用具可比性的 Benchmark 時，不得把全球所有領域的國際共著比例直接當成同類系所的期望值，也不得用於宣稱已確認的系所弱點。
+
+#### QA-7 辦學成效與持續改善機制
+
+- **品保關注**：學生學習表現、畢業生意見、系所自我檢視，以及改善機制的規劃、執行與追蹤。
+- **本次 WoS / RI 可以整理**：研究成果與研究影響力年度變化、可觀察的研究績效缺口、後續可追蹤的研究相關指標，以及具證據基礎的可能發展方向。
+- **不能單憑 WoS 認定**：正式改善會議決議、責任單位、實際預算、改善措施已執行與否、學生及畢業生回饋、改善措施與研究指標變化之因果關係。
+- **輸出要點**：列出研究面向的「現況 → 可觀察問題 → 建議追蹤指標 → 待系所提供的改善紀錄」。不可把本報告建議當成**已核定或已執行的改善成效**。
+
+**七項品保的優先支援順序**：QA-1 及 QA-4 為研究相關直接支援核心；QA-5、QA-6、QA-7 僅提供研究相關部分證據；QA-2、QA-3 以間接線索或待補資料為主。這是**WoS 資料可支援的程度分類**，不是校方對任何品保項目的正式評定。
+
+**跨領域適用規則**：不預設 AACSB、IEET、TMAC、醫學或其他專屬認證標準。若 `ADDITIONAL_EVALUATION_CRITERIA` 有值，僅將使用者明確輸入的要求加入評鑑證據對照，不自行擴寫成未提供的正式認證條文。
+
+**其他學校適用**：若 `{{INSTITUTION}}` 非 NYCU，七項品保僅作為研究佐證整理的參考架構，不得聲稱是該校法定或正式適用標準。若 `EVALUATION_FRAMEWORK=CUSTOM` 而未提供正式效標，只產出通用研究佐證摘要與資料缺口，不聲稱完成特定學校的評鑑對應。
+
+### 15.2 Embedded Self-Evaluation Writing Requirements｜內建四面向撰寫要求
+
+本 Prompt 已直接提供自評報告可用的**研究相關撰寫架構**。請依以下四個面向輸出，而非要求 RI 另讀取計畫文件：
+
+1. **現況描述**：以可確認的 RI 資料說明分析範圍、產出規模、研究專長、正規化影響力、代表性成果及已啟用的合作分析。所有定量描述要有數值、期間與口徑。
+2. **特色**：歸納 3–5 項具跨年度、學科或具體論文支持的研究特色，提出代表性成果與 DOI，不使用「領先世界」等缺乏驗證的宣傳語。
+3. **問題與困難**：區分 Confirmed Metric-Level Gap、Potential Challenge、External Evidence Required；已確認的正規化指標差距是數據層級的觀察，不代表統計顯著或研究品質低劣。**未匹配學科的全球整體合作比例只能描述其差異，不得直接標記系所弱點**；不能推測師資、經費、設備或教學環境不足。
+4. **改善策略**：若 `INCLUDE_STRATEGIC_RECOMMENDATIONS=true`，從既有研究能力、成就與缺口提出**供系所討論的建議方向**；每項附證據、可能的追蹤指標、風險或資料限制。不得虛構已核定的改善計畫、執行責任人、經費或成果。
+
+**寫作共同要求**：以精要、可引用的研究佐證敘述為主，避免作文式冗長敘事；量化證據與代表作 DOI 應可回溯。報告分析期間由 `{{START_YEAR}}–{{END_YEAR}}` 控制，品保資料期間另由 `EVALUATION_REFERENCE_PERIOD` 控制，**兩者不同時務必加註，不得聲稱已完全符合校方指定學年度**。
+
+### 15.3 Evaluation Evidence Matrix｜七項品保與研究佐證對照矩陣
+
+請依上方**已嵌入的 QA-1 至 QA-7**逐項輸出（即使某項無直接證據，也要說明），欄位包含：
+
+| Field | Description |
+|---|---|
+| QA Item | QA-1 至 QA-7 的項目編號與名稱 |
+| Embedded Requirement | 本 Prompt 內建的對應品保關注點，不要引用外部網址 |
+| Relevant Research Claim | WoS／RI 可支持的研究相關敘述 |
+| Evidence / Value | 實際統計數值、研究主題或具名文獻；百分比必要時註明分母是否可確認 |
+| Reference Type / Comparability | 正規化方法基準、全球整體描述性參考、具可比性的指定比較對象，或不適用 |
+| Evidence Trace | 完整報告章節、具體論文題名與 DOI（如可確認） |
+| Evidence Level | Direct / Indirect / External Required / Unverified |
+| Scope / Period Limitation | WoS 涵蓋、分母、資料年份與品保期間的差異 |
+| Additional Evidence Needed | 系所另需補充的校務或實績資料 |
+
+四類證據說明：
+
+- **Direct**：WoS／RI 可直接支持此一明確的**研究相關敘述**，不是認定整個品保項目已達標。即使資料本身直接可驗證，**其比較基準仍可能不可比**，兩者應分開判定。
+- **Indirect**：與品保項目有關的研究線索，但不足以證明教學、實務或制度成效。
+- **External Required**：必須由系所、學院或校務單位提供外部資料。
+- **Unverified**：資料有異常、出處不明或尚不能可靠確認。
+
+不得自行宣告「達標／未達標」、「通過／未通過」或替系所產生自評認可等級。
+
+### 15.4 Evidence Gap & Collection Plan｜待補資料與蒐集建議
+
+**僅在 `INCLUDE_EVIDENCE_GAP_ANALYSIS=true` 時執行。**
+
+根據上方七項品保要求，製作後續由系所自行補充的資料清單。至少提供：QA Item、Available WoS Evidence、Missing Evidence、Suggested Data Type、Possible Data Owner、Suggested Verification、Period Consistency Note。
+
+如報告使用全球整體數據作背景比較，應在待補資料中提出**依學科、機構層級及文件口徑匹配的比較需求**；不得宣稱已完成同儕比較。待補資料示例（僅作為資料類型，**不代表資料已存在或已取得**）：系所使命／發展計畫、院級／系級增列效標、課程與學習成效、學生及畢業生資料、正式教師名冊、非 WoS 研究成果、研究計畫／經費、大型計畫參與、專利及技術移轉、產官學合作成果、社會參與實績、國際交流活動、會議決議與改善追蹤紀錄。
+
+建議資料持有者可列系所、教務、研發、國際、人事或校務研究相關單位，但不得推定具體權責或假設 RI 可直接存取。
+
+### 15.5 Self-Evaluation Draft Support｜研究相關自評段落草稿
+
+**僅在 `INCLUDE_SELF_EVALUATION_DRAFT=true` 時執行。**
+
+依 **「現況描述 → 特色 → 問題與困難 → 改善策略」** 四面向，提供可供系所直接編修的**研究相關草稿**：
+
+- **QA-1 特色發展**：研究專精、研究特色及學術發展趨勢；不得擅自聲稱系所正式使命與願景已落實。
+- **QA-4 學術研究**：研究產出、影響力、代表作、研究能力、可確認的高影響成果與限制，為主要草稿篇幅。
+- **QA-5 產官學合作與社會責任**：僅有可核實共著或研究主題線索時才撰寫，否則標記資料待補；不得推論實際社會影響。
+- **QA-6 國際化**：只撰寫國際研究共著、海外機構及研究合作主題的已驗證資訊，不推定其他國際活動。
+- **QA-7 持續改善**：撰寫可觀察的研究績效變化與待確認事項；若策略模組啟用，可以提供**建議改善方向**，不得冒稱已實施措施或改善成果。
+- **QA-2／QA-3**：只列研究趨勢可提供的間接參考或待補資料，不填寫沒有依據的教學、學生表現與學習資源成果。
+
+每段重要研究事實後標示「〔RI 佐證：章節／指標／代表作 DOI〕」；任何使用全球整體參考值的句子，須加「〔比較限制：全球總體參考，未按學科／系所匹配〕」，並優先改寫成客觀數據描述而非「系所已確認弱點」；對需外部補充的地方標示「〔待系所補充：資料名稱〕」。如未提供 `DEPARTMENT_MISSION`、`DEPARTMENT_STRATEGIC_GOALS`、`ADDITIONAL_EVALUATION_CRITERIA`，不得自行產生已核定目標、院級細則或專屬認證條件。
+
+### 15.6 Quality Assurance Evidence Brief｜品保研究佐證摘要
+
+在完整 RI Report 之外，另產出一份獨立的**研究佐證摘要**（不是完整自評報告），依序包含：
+
+1. 品保架構名稱及 WoS 佐證適用範圍（不出現外部網址或聲稱已讀取官方網站）。
+2. **Research Capabilities**：可由文獻支持的 3–5 項研究能力。
+3. **Research Achievements**：3–5 項研究成就、具體論文、影響力指標與 DOI（若啟用）。
+4. **Research Gaps**：有基準支持的量化落差、證據不足與必要限制。
+5. **Evaluation Evidence Matrix**：QA-1 至 QA-7 的研究佐證及待補項目。
+6. **Evidence Gap & Collection Plan**（若啟用）。
+7. **Self-Evaluation Draft Support**（若啟用）。
+8. WoS 涵蓋、資料來源及出版年度／品保期間差異；標明此摘要須經系所審核後才能使用。
+
+完整報告與品保摘要必須採相同研究指標、論文及 DOI；**兩份輸出對全球參考值的可比性、百分比分母與出版年度完整性，也必須用相同說法**。不要為了填滿七項而產生無依據的內容；沒有外部資料時直接標示「待系所補充」。
+
+---
+
+# PART V. STRATEGY & REFERENCES
+
+## 16. Strategic Recommendations｜證據導向研究發展建議
+
+**僅在 `INCLUDE_STRATEGIC_RECOMMENDATIONS=true` 時執行。**
+
+依研究能力、具體成就、量化缺口及已啟用的合作與 Benchmark 結果，提出 3–5 項可供系所討論的發展方向。每項包含 Evidence、Interpretation、Existing Capability、Observed Gap、Possible Strategic Direction、Potential Benefit、Evidence Limitations。須說明每項建議使用的方法學基準／全球描述性參考／指定比較單位；不可僅因國際合作比例低於全球總體值，就把「合作太少」當成已確認問題或因果成因。
+
+請與第 14 模組 Development Priorities 保持一致，不重複製造兩套相互衝突的建議；不將數據相關性解讀為政策或管理措施的因果成效。若無足夠資料，不得提出缺乏證據的組織、經費或人事政策建議。
+
+## 17. References & DOI｜APA 7th 書目與來源資訊
+
+**僅在 `INCLUDE_REFERENCES=true` 時執行。**
+
+最後列出 References，採 `{{REFERENCE_STYLE}}`，涵蓋代表作、Signature Achievements 與正文具名引用且實際支持分析的論文；不需要列出全集合中每一篇 WoS 文獻。
+
+期刊論文依 APA 7th：完整且正確的作者順序、年份、題名、正式期刊名、卷期、頁碼／文章編號、DOI（當 `INCLUDE_DOI=true` 且可確認）。APA 第七版應使用正確作者列示及省略規則、標題大小寫及適當斜體格式；DOI 寫成 `https://doi.org/...`。不得猜測作者、正式頁碼、文章編號或 DOI。
+
+**強制 APA 7th 書目品質規則**：
+
+1. **References 依第一作者姓氏字母順序排列，不編號**；同一作者多篇時依 APA 7th 排序規則處理。
+2. **20 位作者以內全部列出**；超過 20 位時列出前 19 位作者、刪節號（…）、最後一位作者。**不得在參考文獻表中以 `et al.` 代替作者列示**。
+3. 期刊論文格式為：`Author, A. A., & Author, B. B. (Year). Article title in sentence case. Journal Title, volume(issue), page range or article number. https://doi.org/xxxxx`；期刊名與卷數依 APA 規則斜體。
+4. 逐筆核對 WoS / RI 實際可取得的作者順序、正式題名、出版年、期刊、卷期、頁碼／文章編號及 DOI。**若資料不完整，保留能確認的部分，另於書目品質備註標為 `Bibliographic metadata incomplete`；不得聲稱是已完整核對的 APA 7th 書目**。
+5. 不得用 DOI 字串、論文標題推測或模型記憶補齊缺失的書目欄位；若 RI 可以再取得可靠 WoS 書目記錄，可使用其明確提供的資料補齊。
+6. DOI 已知時採 `https://doi.org/xxxxx`，不可虛構或補造；如 Early Access 年與正式出版年不同，註明文獻引用年與分析篩選年之差異。
+
+**核對** Representative Publications、Achievement Statements、Evidence Matrix 與 References 的題名、年份、**完整作者及順序**、DOI 是否一致；確認 References 已依第一作者姓氏排序、無不合規的 `et al.`。若 Early Access 與正式出版年不同，說明書目引用年與 WoS 分析篩選年的口徑差異。無法驗證的書目細節應標示未確認。
+
+另設獨立的 Data Source & Retrieval Information，註明實際 RI 資料來源、Normalized Entity、WoS 出版年、Document Type Scope、可確認的查詢／擷取時間、**本 Prompt 內建品保架構名稱及其屬於摘要整理的性質**、主要限制。**不要提供或要求 RI 讀取任何外部網址，也不得聲稱已驗證官方計畫的最新版本。**不要以個別論文 APA 引文替代整體 RI 計量資料來源。
+
+---
+
+# PART VI. FINAL OUTPUT FORMAT
+
+請以 `{{OUTPUT_LANGUAGE}}` 產生以下兩種用途相異、數據一致的結果。
+
+## OUTPUT A — Department Research Intelligence Full Report（完整研究分析）
+
+1. Executive Summary｜系所研究表現摘要。
+2. Department Research Highlights｜研究能力、研究成就、研究缺口與發展重點（診斷功能啟用時）。
+3. Entity & Data Scope。
+4. Overall Research Performance。
+5. Annual Research Trend。
+6. Research Specialization。
+7. Research Theme Development。
+8. Publication Sources。
+9. Key Research Contributors（若啟用）。
+10. Rising / Emerging Contributors（若啟用）。
+11. Representative Publications。
+12. Contribution to College（若啟用）。
+13. International Collaboration（若啟用）。
+14. External Benchmark Analysis（若啟用）。
+15. Department Research Profile。
+16. Department Research Diagnostics（若啟用，含詳細能力、成就、缺口證據）。
+17. Strategic Recommendations（若啟用）。
+18. References & DOI（若啟用）。
+19. Data Source & Limitations。
+
+## OUTPUT B — Quality Assurance Evidence Brief（Level 2 啟用時）
+
+1. 適用的品保架構、研究證據可支援範圍與資料期間限制。
+2. 系所研究特色及可展示的學術成就（重要指標、代表作、DOI）。
+3. Evaluation Evidence Matrix｜已內建 QA-1 至 QA-7 的具體要求、RI 佐證、證據等級與待補資料對照。
+4. Evidence Gap & Collection Plan｜各品保項目仍需由系所補充的資料類型與驗證建議（若啟用）。
+5. Self-Evaluation Draft Support｜依內建四面向撰寫要求產出研究相關草稿（若啟用），附指標及 DOI 證據標註。
+6. 本摘要適用界線、WoS 涵蓋限制及追溯至 Full Report 的章節／文獻資訊。
+
+## Reporting Rules
+
+- 以表格呈現主要量化證據，表格後提供簡潔重點判讀；不要為了篇幅而犧牲重要證據，也不設定硬性摘要字數上限。
+- 任何正式陳述均區分 **Data / Evidence、Interpretation、Strategic Implications**。
+- **全球總體參考值不自動等於相同領域的同儕基準**：比較時註明 Reference Type，不把未匹配學科的國際合作比例直接列成已確認系所弱點。
+- 每個研究者或研究領域的 Percentage，若分母不明須保留 RI 原值並標示 `Denominator not provided by RI`，不得將 Documents 當成已確認的分母。
+- **已結束的出版曆年不得稱為「年度尚未完整」**；索引延遲、正式出版年歸屬與引用觀察窗應分開解讀。
+- References 依 APA 7th 第一作者姓氏排序；作者列示遵守 20 位作者規則，不使用 `et al.` 充當參考文獻作者名單；未取得的書目欄位不補造。
+- 不能用 WoS 推斷教學品質、學生學習、正式研究計畫經費、產學合作實績、設備或完整師資狀況。
+- Quality Assurance Evidence Brief 只能提供**研究相關部分的佐證與撰寫參考**，不得宣稱已完成七項品保，也不得宣告通過／不通過。
+- **外部資料零依賴**：請直接使用本 Prompt 第 15 模組的內建品保要求，不開啟、不索取、不假設能讀取任何網頁、PDF 或校務系統；當資料不足時以「待系所補充」處理。
+- 兩份輸出應使用同一批 RI 數據、同一組 DOI 與一致的研究口徑。
+- 若資料不足，應留下明確缺口及驗證建議，而不是填入猜測。
+- 不顯示 GLOBAL PARAMETERS、開關語句或內部流程訊息。
+
+**最終任務：以 WoS / RI 研究資料快速產生可追溯、跨系所可重複使用的研究分析；依本 Prompt 內建的《國立陽明交通大學自主辦理系所品質保證實施計畫》七項主題及四面向寫作要求，產出不依賴外部網址的研究相關品保佐證。確實區分正規化期望、全球總體描述性數據與使用者指定的可比較單位；所有 Percentage 說明分母限制，動態判定出版年度完整性，並核對 APA 7th 作者與書目欄位。Level 3 比較分析僅在使用者啟用時執行。**

@@ -1,0 +1,1540 @@
+# ==================================================
+# GLOBAL PARAMETERS｜只修改這裡
+# ==================================================
+
+INSTITUTION: "National Yang Ming Chiao Tung University"
+
+COLLEGE: "College of Management"
+
+START_YEAR: 2021
+
+END_YEAR: 2025
+
+TOP_N: 10
+
+OUTPUT_LANGUAGE: "Traditional Chinese (Taiwan)"
+
+
+# --------------------------------------------------
+# OPTIONAL ANALYSIS MODULES
+# --------------------------------------------------
+
+INCLUDE_RESEARCHER_ANALYSIS: true
+
+INCLUDE_COLLABORATION_ANALYSIS: true
+
+INCLUDE_STRATEGIC_RECOMMENDATIONS: true
+
+INCLUDE_BENCHMARK: true
+
+INCLUDE_REFERENCES: true
+
+INCLUDE_DOI: true
+
+
+# --------------------------------------------------
+# BENCHMARK SETTINGS
+# --------------------------------------------------
+
+# 僅在 INCLUDE_BENCHMARK = true 時使用
+# 可填 1–4 個比較對象
+# 不使用的欄位請保持空字串 ""
+
+BENCHMARK_1: "National Taiwan University College of Management"
+
+BENCHMARK_2: "National Chengchi University College of Commerce"
+
+BENCHMARK_3: ""
+
+BENCHMARK_4: ""
+
+
+# --------------------------------------------------
+# REFERENCE SETTINGS
+# --------------------------------------------------
+
+REFERENCE_STYLE: "APA 7th edition"
+
+
+# ==================================================
+# GLOBAL VARIABLE RULES
+# ==================================================
+
+請將以上 GLOBAL PARAMETERS
+視為本次分析的全域變數。
+
+以下所有 {{VARIABLE_NAME}}
+均自動套用上述設定。
+
+
+規則：
+
+1. 不得自行修改已指定的變數。
+
+2. START_YEAR 與 END_YEAR
+   為本次分析唯一的時間範圍來源。
+
+3. 所有涉及年份、分析期間、
+   前期／中期／近期、代表性成果、
+   研究主題發展與國際合作趨勢的分析，
+   均必須由：
+
+   {{START_YEAR}}
+   {{END_YEAR}}
+
+   動態推導。
+
+4. 除 GLOBAL PARAMETERS 所指定的年份外，
+   不得自行使用固定年份作為分析範圍。
+
+5. 若 Web of Science / Research Intelligence
+   中的 Institution / College /
+   Department Entity Name
+   與輸入名稱不同，
+
+   可以使用資料庫標準化名稱，
+   但必須說明：
+
+   - 使用者輸入名稱
+   - Research Intelligence 標準化名稱
+   - 實際採用的分析實體
+
+6. 若某項資料無法取得，
+   請明確標示：
+
+   「目前資料不足」
+
+   或
+
+   「目前資料不足以判斷」
+
+   不得自行推測。
+
+7. 所有分析與判讀
+   均須以 Web of Science /
+   Research Intelligence
+   實際取得的資料為基礎。
+
+
+# ==================================================
+# BENCHMARK VARIABLE RULES
+# ==================================================
+
+Benchmark 分析須遵守以下規則：
+
+1. 只有在：
+
+   INCLUDE_BENCHMARK = true
+
+   時執行 Benchmark Analysis。
+
+2. Benchmark 候選對象僅來自：
+
+   {{BENCHMARK_1}}
+   {{BENCHMARK_2}}
+   {{BENCHMARK_3}}
+   {{BENCHMARK_4}}
+
+3. 空字串 "" 代表未指定，
+   必須自動忽略。
+
+4. 不得自行補充、
+   推薦或增加使用者未指定的 Benchmark 對象。
+
+5. 若 INCLUDE_BENCHMARK = true，
+   但 BENCHMARK_1–BENCHMARK_4
+   全部為空白，
+
+   請明確說明：
+
+   「已啟用 Benchmark Analysis，
+   但目前未提供 Benchmark 對象，
+   因此本次不執行外部比較。」
+
+6. 若只有部分 Benchmark 欄位有值，
+   僅分析實際有填寫的對象。
+
+   例如：
+
+   BENCHMARK_1 有值
+   BENCHMARK_2 有值
+   BENCHMARK_3 = ""
+   BENCHMARK_4 = ""
+
+   則僅比較兩個 Benchmark 對象。
+
+7. 每一個 Benchmark 對象
+   都必須獨立執行 Entity Normalization。
+
+8. 必須說明每個 Benchmark 的：
+
+   - Original Input Name
+   - Normalized Entity Name
+   - Entity Type
+   - Actual Entity Used
+
+9. Benchmark 原則上應使用
+   與 {{COLLEGE}} 相同或可比較的組織層級。
+
+10. 若 Benchmark 的 Entity Level
+    與 {{COLLEGE}} 不相同，
+
+    例如：
+
+    College vs Institution
+    College vs Department
+
+    必須明確警示：
+
+    「組織層級不同，
+    指標規模不可直接視為同等比較。」
+
+11. Benchmark 分析期間
+    必須與主要分析完全一致：
+
+    {{START_YEAR}}–{{END_YEAR}}
+
+12. Benchmark 使用的 bibliometric indicators、
+    eligibility rules 與資料口徑
+    應盡可能保持一致。
+
+
+# ==================================================
+# TIME PERIOD CONSISTENCY RULE
+# ==================================================
+
+分析期間固定為：
+
+{{START_YEAR}}–{{END_YEAR}}
+
+
+「近期成果」原則上指：
+
+分析期間最後 1–2 個出版年度。
+
+
+若需分析 Research Theme Development，
+
+請依實際分析期間長度
+建立合理的時間階段，例如：
+
+A. Early Period
+   分析期間前期
+
+B. Middle / Transition Period
+   分析期間中期或轉折期
+
+C. Recent Period
+   分析期間近期
+
+
+分期規則：
+
+1. 不必機械式平均分割年份。
+
+2. 應優先依：
+
+   - Documents
+   - Research Areas
+   - CNCI
+   - Top 10% Papers
+   - Representative Publications
+   - Research Themes
+
+   的實際變化判斷。
+
+3. 若資料顯示明顯研究轉折點，
+   可以依轉折點重新界定階段，
+   並說明分期依據。
+
+4. 若分析期間較短，
+   不必強制切成三個階段。
+
+5. 若分析期間較長，
+   可以增加合理的研究發展階段。
+
+
+# ==================================================
+# OUTPUT CLEANLINESS RULE
+# ==================================================
+
+GLOBAL PARAMETERS、
+變數名稱與控制開關
+僅供控制分析流程使用。
+
+正式輸出中：
+
+1. 不要顯示 GLOBAL PARAMETERS。
+
+2. 不要顯示以下控制變數名稱：
+
+   INCLUDE_RESEARCHER_ANALYSIS
+   INCLUDE_COLLABORATION_ANALYSIS
+   INCLUDE_STRATEGIC_RECOMMENDATIONS
+   INCLUDE_BENCHMARK
+   INCLUDE_REFERENCES
+   INCLUDE_DOI
+
+3. 不要出現：
+
+   「本節因 XXX = true 而執行」
+
+   等內部控制語句。
+
+4. 直接呈現正式分析內容。
+
+
+# ==================================================
+# METRIC INTERPRETATION RULE
+# ==================================================
+
+凡是輸出 Percentage /
+Percentage-based Metrics 時，
+
+請注意不同指標可能使用不同的：
+
+- eligible document population
+- denominator
+- document type eligibility
+- JCR eligibility
+- citation percentile eligibility
+
+
+尤其包括：
+
+Q1 JIF Papers Percentage
+
+Top 10% Papers Percentage
+
+Top 1% Papers Percentage
+
+International Collaboration Percentage
+
+
+若 Research Intelligence
+可以取得 denominator、
+eligible document rule
+或計算口徑，
+
+請一併說明。
+
+
+若無法取得精確 denominator，
+
+請加註：
+
+「此百分比依 Research Intelligence /
+Web of Science 所定義之 eligible documents
+或指標計算口徑產生，
+其分母不一定等同於本分析集合的
+Total Documents。」
+
+
+不要自行使用 Total Documents
+重新計算百分比，
+
+也不要自行推定 denominator。
+
+
+# ==================================================
+# ANALYSIS OBJECTIVE
+# ==================================================
+
+請針對：
+
+Institution:
+{{INSTITUTION}}
+
+College:
+{{COLLEGE}}
+
+Analysis Period:
+{{START_YEAR}}–{{END_YEAR}}
+
+
+進行完整的：
+
+- 學院研究績效分析
+- 研究影響力分析
+- Research Portfolio 分析
+- 研究主題與研究發展分析
+- 主要成果貢獻研究者分析
+- 國際研究合作分析
+- Benchmark Analysis（如啟用）
+- 策略性研究發展分析
+
+
+核心目的為：
+
+1. 掌握分析期間內
+   學院的研究產出與研究影響力
+
+2. 辨識主要研究領域
+   與特色 Research Themes
+
+3. 找出高影響力研究成果
+   與主要成果貢獻研究者
+
+4. 分析研究主題
+   在分析期間內的發展與變化
+
+5. 分析國際研究合作結構
+
+6. 如啟用 Benchmark，
+   分析與指定比較對象之間
+   的研究規模、影響力與特色差異
+
+7. 提供可作為學院
+   研究發展規劃參考的分析結果
+
+
+# ==================================================
+# 1. ENTITY CONFIRMATION
+# ==================================================
+
+首先確認：
+
+{{INSTITUTION}}
+
+與
+
+{{COLLEGE}}
+
+在 Web of Science /
+Research Intelligence 中
+對應的正式 Entity。
+
+
+請執行 Entity Normalization。
+
+
+如果資料庫中的 Entity
+與輸入名稱不同，
+
+請明確說明：
+
+- Original Input Name
+- Normalized Entity Name
+- Actual Entity Used
+- Entity Path
+- Data Coverage
+
+
+同時說明：
+
+- affiliation / address 歸屬方式
+- 跨單位共同署名可能造成的影響
+- College / Department Entity normalization 的限制
+- College entity 是否涵蓋其下系所、中心或其他子單位
+- Early Access year 與正式出版年份如何處理
+
+
+不可將本分析
+直接等同於完整的人事成果盤點。
+
+
+# ==================================================
+# 2. OVERALL RESEARCH PERFORMANCE
+# ==================================================
+
+分析 {{START_YEAR}}–{{END_YEAR}}
+的學院整體研究表現。
+
+
+請盡可能提供：
+
+Documents
+
+Times Cited
+
+Citations per Paper
+
+CNCI
+(Category Normalized Citation Impact)
+
+JNCI
+(Journal Normalized Citation Impact)
+
+Top 10% Papers
+
+Top 10% Papers Percentage
+
+Top 1% Papers
+
+Top 1% Papers Percentage
+
+Highly Cited Papers
+
+Hot Papers
+
+Cited Papers Percentage
+
+h-index
+
+
+若資料可取得，也加入：
+
+Q1 JIF Papers
+
+Q1 JIF Papers Percentage
+
+International Collaboration Papers
+
+International Collaboration Percentage
+
+
+請區分：
+
+A. Research Productivity
+
+B. Citation Impact
+
+C. Normalized Research Impact
+
+D. High-Impact Research
+
+
+不要只使用：
+
+Documents
+Times Cited
+h-index
+
+判斷整體研究表現。
+
+
+請特別說明：
+
+- CNCI 與世界平均基準 1 的關係
+- JNCI 與同刊物平均基準 1 的關係
+- Top 10% Papers Percentage
+  與全球期望值 10% 的關係
+- Top 1% Papers Percentage
+  與全球期望值 1% 的關係
+
+
+Percentage 指標
+請遵守 METRIC INTERPRETATION RULE。
+
+
+# ==================================================
+# 3. ANNUAL TREND
+# ==================================================
+
+分析 {{START_YEAR}}–{{END_YEAR}}
+每年的研究表現。
+
+
+至少提供：
+
+Year
+
+Documents
+
+Times Cited
+
+CNCI
+
+JNCI
+
+Top 10% Papers
+
+Top 10% Papers Percentage
+
+Top 1% Papers
+
+
+若資料可取得，也提供：
+
+Q1 JIF Papers Percentage
+
+International Collaboration Percentage
+
+
+請辨識：
+
+- 研究產出成長或下降
+- 研究影響力高峰
+- 高影響成果集中年份
+- 明顯轉折年份
+- 近期研究表現是否改善
+- 是否存在產出增加但影響力下降
+- 是否存在產出下降但影響力提升
+
+
+對分析期間最後 1–2 個出版年度，
+
+必須特別考慮：
+
+citation window 較短
+
+
+近期成果優先參考：
+
+CNCI
+
+JNCI
+
+Top 10% / Top 1% Status
+
+以及其他 normalized indicators，
+
+而非單獨使用 Times Cited。
+
+
+# ==================================================
+# 4. RESEARCH AREAS / RESEARCH PORTFOLIO
+# ==================================================
+
+列出前 {{TOP_N}} 個主要：
+
+Web of Science Research Areas
+
+或
+
+Web of Science Categories。
+
+
+至少提供：
+
+Rank
+
+Research Area
+
+Documents
+
+Times Cited
+
+CNCI
+
+Top 10% Papers
+
+Top 10% Papers Percentage
+
+
+辨識：
+
+1. Core Research Areas
+
+2. High-Output Areas
+
+3. High-Impact Areas
+
+4. High-Output but Lower-Impact Areas
+
+5. Emerging Areas
+
+6. Interdisciplinary Areas
+
+
+不要只重複
+Web of Science Category 名稱。
+
+
+請進一步根據：
+
+- Research Areas
+- Research Topics
+- Representative Publications
+- Citation Impact
+- Research Front / Topic information
+  （若可取得）
+
+將分析期間內的研究
+歸納為 3–5 個：
+
+Research Themes
+特色研究主軸
+
+
+每個 Research Theme 說明：
+
+- 主要研究領域
+- 主要研究問題
+- 代表性成果
+- 是否具有高影響成果
+- 是否具有跨領域特色
+
+
+# ==================================================
+# 5. PUBLICATION SOURCES
+# ==================================================
+
+列出分析期間內
+前 {{TOP_N}} 個主要：
+
+Publication Sources / Journals
+
+
+至少提供：
+
+Rank
+
+Source
+
+Documents
+
+Times Cited
+
+CNCI
+
+Top 10% Papers
+
+Top 10% Papers Percentage
+
+
+若資料可取得，也加入：
+
+JIF
+
+JIF Quartile
+
+
+區分：
+
+A. High-volume Publication Sources
+
+B. High-impact Publication Sources
+
+C. Strategically Important Sources
+
+
+不要將：
+
+「發表篇數最多」
+
+直接解讀為：
+
+「最重要的期刊」。
+
+
+# ==================================================
+# 6. KEY CONTRIBUTORS TO COLLEGE PUBLICATIONS
+# ==================================================
+
+只有在研究者分析功能啟用時，
+執行本節。
+
+
+本節標題：
+
+Key Contributors to College Publications
+學院成果主要貢獻研究者
+
+
+列出分析期間內
+前 {{TOP_N}} 位主要成果貢獻研究者。
+
+
+至少提供：
+
+Rank
+
+Researcher Name
+
+Documents
+
+Times Cited
+
+CNCI
+
+Top 10% Papers
+
+Top 10% Papers Percentage
+
+h-index
+
+Primary Affiliation
+
+ResearcherID
+
+ORCID
+（若可取得）
+
+
+請明確說明：
+
+這些研究者是依
+「可歸屬至 {{COLLEGE}} 的論文成果」
+所辨識出的主要成果貢獻者，
+
+並不等同於
+{{COLLEGE}} 的現職教師名單。
+
+
+辨識：
+
+A. High-output Contributors
+
+B. High-impact Contributors
+
+C. Contributors combining
+   Productivity and Impact
+
+
+並分析：
+
+1. 成果是否集中於少數研究者
+
+2. 是否存在高影響力核心研究群
+
+3. 哪些研究者對主要 Research Themes
+   有明顯貢獻
+
+
+# ==================================================
+# 6.1 RISING / EMERGING CONTRIBUTORS
+# ==================================================
+
+若 Research Intelligence
+可以取得研究者年度資料，
+
+請辨識：
+
+Rising / Emerging Contributors
+
+
+觀察：
+
+- 近期研究產出增加
+- 近期出現高 CNCI 成果
+- 近期出現 Top 10% / Top 1% 成果
+- 相較分析期間前期，
+  近期研究影響力明顯提升
+
+
+若資料不足，
+
+請明確回答：
+
+「目前 Research Intelligence
+所取得的資料不足以可靠辨識
+Rising / Emerging Contributors。」
+
+
+# ==================================================
+# 7. REPRESENTATIVE PUBLICATIONS
+# ==================================================
+
+選出分析期間內
+{{TOP_N}} 篇最具代表性的研究成果。
+
+
+至少提供：
+
+Rank
+
+Title
+
+Authors
+
+Year
+
+Source
+
+Document Type
+
+Times Cited
+
+CNCI
+
+Top 10% / Top 1% Status
+
+DOI
+（若可取得）
+
+
+不要只按 Times Cited 排序。
+
+
+同時考慮：
+
+- Times Cited
+- CNCI
+- Top 10% / Top 1%
+- Publication Year
+- Research Theme relevance
+
+
+分別辨識：
+
+A. Most Cited Publications
+
+B. Highest CNCI Publications
+
+C. Top 10% / Top 1% Publications
+
+D. Recent High-Potential Publications
+
+
+最後分析：
+
+1. 代表作集中在哪些主題？
+
+2. 哪些 Research Themes
+   真正構成高影響力成果？
+
+3. 高影響成果是否集中於
+   少數研究者、期刊或領域？
+
+
+# ==================================================
+# 8. RESEARCH THEME DEVELOPMENT
+# ==================================================
+
+依據：
+
+Publication Year
+
+Research Areas
+
+Research Topics
+
+Representative Publications
+
+CNCI
+
+Top 10% Papers
+
+以及 Research Intelligence
+可取得的研究主題資訊，
+
+分析研究主題變化。
+
+
+首先依
+TIME PERIOD CONSISTENCY RULE
+
+建立合理研究發展階段，
+並說明各階段年份。
+
+
+回答：
+
+1. 分析期間前期
+   主要 Research Themes 為何？
+
+2. 是否出現明顯研究主題轉折？
+
+3. 分析期間近期
+   有哪些 Emerging Research Themes？
+
+4. 哪些 Research Themes
+   在整個分析期間持續存在？
+
+5. 哪些主題呈現：
+
+   - Growth
+   - Decline
+   - Impact Improvement
+   - Impact Decline
+   - Topic Transformation
+
+6. 是否出現 AI、
+   Digital Transformation、
+   Sustainability、
+   Smart Manufacturing、
+   FinTech、
+   Supply Chain、
+   Digital Marketing
+   或其他跨領域趨勢？
+
+
+第 6 點僅在資料支持時納入。
+
+
+最後整理：
+
+Established Research Themes
+
+Emerging Research Themes
+
+
+# ==================================================
+# 9. INTERNATIONAL COLLABORATION
+# ==================================================
+
+只有在國際合作分析功能啟用時，
+執行本節。
+
+
+分析：
+
+International Collaboration Papers
+
+International Collaboration Percentage
+
+
+若可取得，進一步分析：
+
+Major Collaborating Countries / Regions
+
+Major Collaborating Institutions
+
+Major International Collaborators / Researchers
+
+Collaboration Research Areas
+
+
+分析：
+
+1. 國際合作程度與年度變化
+
+2. 國際合作是否集中於特定主題
+
+3. 國際合作成果 CNCI
+   是否與非國際合作成果不同
+
+4. 哪些國家／地區具有：
+
+   - 較大合作規模
+   - 較高 CNCI
+   - 較高 Top 10% Papers Percentage
+
+5. 哪些合作機構兼具：
+
+   - 一定合作產出
+   - 較佳正規化研究影響力
+
+6. 是否存在主要國際合作研究者
+
+
+# ==================================================
+# 9.1 LONG-TERM COLLABORATION NETWORKS
+# ==================================================
+
+若資料支援年度
+或共同作者層級分析，
+
+請辨識：
+
+Long-term Collaboration Networks
+
+
+觀察：
+
+- 不同年度持續合作的機構
+- 不同年度持續共同發表的研究者
+- 長期合作集中哪些 Research Themes
+- 長期合作成果的 CNCI
+- 長期合作成果的 Top 10% Percentage
+
+
+若資料不足，
+
+請回答：
+
+「目前資料不足以可靠判斷
+長期國際合作網絡。」
+
+
+# ==================================================
+# 10. BENCHMARK ANALYSIS
+# ==================================================
+
+只有在：
+
+INCLUDE_BENCHMARK = true
+
+時執行本節。
+
+
+首先檢查：
+
+{{BENCHMARK_1}}
+{{BENCHMARK_2}}
+{{BENCHMARK_3}}
+{{BENCHMARK_4}}
+
+
+建立：
+
+Valid Benchmark Set
+
+
+只保留非空白對象。
+
+
+對每個有效 Benchmark
+先進行 Entity Normalization。
+
+
+請建立 Benchmark Entity Table：
+
+Benchmark Label
+
+Original Input Name
+
+Normalized Entity Name
+
+Entity Type
+
+Actual Entity Used
+
+
+若 Entity Level
+與 {{COLLEGE}} 不同，
+
+必須標示：
+
+Comparability Limitation
+
+
+所有 Benchmark
+使用相同期間：
+
+{{START_YEAR}}–{{END_YEAR}}
+
+
+至少比較：
+
+Documents
+
+Times Cited
+
+CNCI
+
+JNCI
+
+Top 10% Papers Percentage
+
+Top 1% Papers Percentage
+
+Q1 JIF Papers Percentage
+（若可取得）
+
+International Collaboration Percentage
+（若可取得）
+
+Highly Cited Papers
+（若可取得）
+
+Major Research Areas
+
+Research Themes
+
+
+請從以下面向分析：
+
+A. Research Scale
+研究規模
+
+B. Normalized Research Impact
+正規化影響力
+
+C. High-Impact Research
+高影響研究比例
+
+D. Research Portfolio
+研究領域組合
+
+E. Research Specialization
+研究特色
+
+F. International Collaboration
+國際合作
+
+G. Distinctive Strengths
+差異化研究優勢
+
+
+Benchmark 的目的不是：
+
+建立單一總排名
+或宣告哪一個單位「最好」。
+
+
+請避免把不同指標
+簡化成單一總分。
+
+
+請回答：
+
+1. {{COLLEGE}}
+   與各 Benchmark
+   在研究規模上有何差異？
+
+2. 正規化研究影響力
+   有何差異？
+
+3. 哪些 Research Areas
+   是各單位共同強項？
+
+4. 哪些 Research Themes
+   呈現明顯差異化？
+
+5. {{COLLEGE}}
+   相較各 Benchmark
+   有哪些具辨識度的研究特色？
+
+6. 哪些面向值得作為
+   後續研究發展觀察重點？
+
+
+若 Benchmark 樣本數、
+組織規模或 Entity Level
+差異過大，
+
+必須在解讀時明確說明。
+
+
+# ==================================================
+# 11. STRATEGIC RESEARCH PROFILE
+# ==================================================
+
+整合所有分析，
+
+建立：
+
+{{COLLEGE}}
+
+{{START_YEAR}}–{{END_YEAR}}
+
+Strategic Research Profile
+
+
+至少回答：
+
+1. 研究產出規模如何？
+
+2. 正規化研究影響力如何？
+
+3. 最主要研究領域為何？
+
+4. 哪些領域具有較高影響力？
+
+5. 哪些領域高產出但影響力仍可提升？
+
+6. 最具代表性的研究成果有哪些？
+
+7. 哪些成果貢獻研究者
+   支撐主要研究方向？
+
+8. 是否形成可辨識研究群聚？
+
+9. 近期有哪些 Emerging Research Themes？
+
+10. 學院研究特色可如何概括？
+
+11. 國際合作呈現何種結構？
+
+12. 若啟用 Benchmark，
+    與比較對象相比，
+    有哪些明顯研究特色或差異？
+
+
+最後使用 3–5 個短語，
+概括最具辨識度的研究特色。
+
+
+# ==================================================
+# 12. STRATEGIC RECOMMENDATIONS
+# ==================================================
+
+只有在策略建議功能啟用時，
+執行本節。
+
+
+提出 3–5 項
+未來研究發展策略。
+
+
+每項包含：
+
+Evidence
+
+Interpretation
+
+Strategic Direction
+
+Potential Impact
+
+
+如已啟用 Benchmark，
+
+可以將 Benchmark 差異
+作為策略判讀的其中一項證據，
+
+但不得單純因其他單位
+某項指標較高，
+
+就直接認定本學院
+必須複製其研究方向。
+
+
+若策略來自：
+
+- 少數論文
+- 少數研究者
+- 小樣本 Research Area
+
+必須說明資料規模限制。
+
+
+# ==================================================
+# 13. APA 7th REFERENCES & DOI
+# ==================================================
+
+只有在 References 功能啟用時，
+執行本節。
+
+
+最後建立：
+
+References｜參考文獻
+
+
+使用：
+
+{{REFERENCE_STYLE}}
+
+
+References 包含：
+
+1. Representative Publications
+   所列代表性成果
+
+2. 正文中被具名提及，
+   並用來支持：
+
+   Research Theme
+   Research Impact
+   Strategic Recommendation
+   Benchmark Interpretation
+
+   的 scholarly publications
+
+3. 其他正文中
+   被明確引用的學術文獻
+
+
+不需要將分析集合中的
+所有 Documents 全部列入 References。
+
+
+# ==================================================
+# APA 7th FORMATTING RULES
+# ==================================================
+
+期刊論文依 APA 7th edition。
+
+
+原則格式：
+
+Author, A. A., Author, B. B., & Author, C. C.
+(Year).
+Title of article.
+Journal Title, volume(issue), page range or article number.
+https://doi.org/xxxxx
+
+
+規則：
+
+1. 作者依原始出版順序。
+
+2. 不得自行改變作者順序。
+
+3. 論文標題使用 sentence case。
+
+4. Journal Title 使用正式名稱。
+
+5. Volume、Issue、
+   Pages / Article Number
+   若可取得請完整提供。
+
+6. DOI 使用：
+
+   https://doi.org/xxxxx
+
+7. 不使用：
+
+   DOI:
+   doi:
+   http://dx.doi.org/
+
+8. DOI 必須來自
+   Web of Science /
+   Research Intelligence
+   或可驗證 bibliographic metadata。
+
+9. 不得依標題自行猜測 DOI。
+
+10. 若 DOI 無法確認，
+    保留完整 APA 7th 書目，
+    不得虛構 DOI。
+
+11. Early Access 與正式出版年份
+    如有差異，
+
+    References 優先採用
+    Web of Science bibliographic record
+    的正式引用資訊。
+
+12. References
+    依第一作者姓氏字母順序排列，
+    不編號。
+
+
+# ==================================================
+# DOI CONSISTENCY CHECK
+# ==================================================
+
+完成 References 前檢查：
+
+1. Representative Publications
+   與 References DOI 是否一致
+
+2. Title 是否一致
+
+3. Author order 是否一致
+
+4. Publication year 是否一致
+
+5. Journal / Source 是否一致
+
+
+若無法確認：
+
+標示：
+
+「DOI / bibliographic detail
+not available from current data」
+
+不得自行補值。
+
+
+# ==================================================
+# ANALYSIS PRINCIPLES
+# ==================================================
+
+1. 不得只以 Documents
+   判斷研究表現。
+
+2. 不得只以 Times Cited
+   判斷研究影響力。
+
+3. 不得只以 h-index
+   評估研究者。
+
+4. 跨年份與跨領域比較
+   優先使用：
+
+   CNCI
+   JNCI
+   Top 10% Papers Percentage
+   Top 1% Papers Percentage
+
+5. 近期成果須考慮 citation window。
+
+6. Bibliometric patterns
+   不代表因果關係。
+
+7. Institution / College / Department
+   affiliation 受作者地址、
+   名稱變體與 Entity Normalization 影響。
+
+8. Primary Affiliation
+   不代表整個分析期間的任職證明。
+
+9. Percentage 指標
+   遵守 METRIC INTERPRETATION RULE。
+
+10. Benchmark 比較
+    不得忽略 Entity Level
+    與單位規模差異。
+
+11. 所有重要結論
+    必須指出相對應的資料證據。
+
+12. 清楚區分：
+
+    Data / Evidence
+    Interpretation
+    Strategic Implications
+
+13. 資料不足時
+    必須說明限制，
+    不得自行推測。
+
+14. DOI 與 bibliographic data
+    不得自行生成或猜測。
+
+
+# ==================================================
+# OUTPUT FORMAT
+# ==================================================
+
+請使用：
+
+{{OUTPUT_LANGUAGE}}
+
+
+依序輸出：
+
+1. Executive Summary
+   學院研究表現摘要
+
+2. Entity & Data Scope
+   分析實體與資料口徑
+
+3. Overall Research Performance
+   整體研究績效
+
+4. Annual Trend
+   年度趨勢
+
+5. Research Portfolio
+   主要研究領域與研究主軸
+
+6. Publication Sources
+   主要發表來源
+
+7. Key Contributors to College Publications
+   學院成果主要貢獻研究者
+
+8. Rising / Emerging Contributors
+   近年成長或新興成果貢獻研究者
+
+9. Representative Publications
+   代表性研究成果
+
+10. Research Theme Development
+    研究主題演變
+
+11. International Collaboration
+    國際合作分析
+
+12. Long-term Collaboration Networks
+    長期合作網絡
+
+13. Benchmark Analysis
+    如啟用 Benchmark 時輸出
+
+14. Strategic Research Profile
+    綜合研究特色
+
+15. Strategic Recommendations
+    研究發展建議
+
+16. References
+    APA 7th edition 參考文獻
+
+
+所有重要數據
+盡量以表格呈現。
+
+
+每一節在數據表後
+加入「重點判讀」。
+
+
+若某節因資料不足
+無法完整分析，
+
+仍保留該節標題，
+
+並明確說明：
+
+- 目前可取得資料
+- 無法取得資料
+- 分析限制

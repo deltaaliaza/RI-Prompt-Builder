@@ -1,0 +1,426 @@
+# Web of Science Research Intelligence
+## Researcher Research Intelligence Template v1.0
+### Individual Research Profile, Faculty Self-Assessment & Applicant Research Evidence
+
+> **使用方法**：整份 Prompt 可直接貼入 Web of Science Research Intelligence（RI）。只修改下方 GLOBAL PARAMETERS；其餘正文原則上不必修改。此 Prompt 不要求 RI 連結外部網站、讀取校內文件或使用未提供的資料。
+
+# GLOBAL PARAMETERS｜全域參數（只需修改此區）
+
+```yaml
+# ==================================================
+# 1. ANALYSIS MODE
+# ==================================================
+ANALYSIS_MODE: "FACULTY_SELF_REVIEW"
+# FACULTY_SELF_REVIEW     = 現職教師研究成果自評與研究佐證
+# APPLICANT_RESEARCH_REVIEW = 應聘者研究成果證據與系所研究方向對照
+
+# ==================================================
+# 2. RESEARCHER IDENTITY
+# ==================================================
+RESEARCHER_NAME_EN: ""
+WOS_RESEARCHER_ID: ""
+ORCID: ""
+RESEARCHER_NAME_VARIANTS: ""
+# 其他發表姓名、姓名縮寫，以分號分隔；無則留空
+CURRENT_AFFILIATION_HINT: ""
+# 目前／曾任機構辨識線索，不等於已確認的任職事實
+
+# ==================================================
+# 3. TARGET INSTITUTION / DEPARTMENT CONTEXT
+# ==================================================
+INSTITUTION: "National Yang Ming Chiao Tung University"
+COLLEGE: "College of Management"
+DEPARTMENT: "Institute of Information Management"
+# 自評模式：受分析教師所屬／欲查核的目標單位
+# 應聘模式：徵聘方的目標單位；不得當成應聘者現任機構
+
+DEPARTMENT_STRATEGIC_GOALS: ""
+POSITION_RESEARCH_FOCUS: ""
+# 由系所明確提供的正式發展重點／徵聘研究方向，以分號分隔
+# 空白代表未提供；不得由 RI 自行推定正式目標／徵聘條件
+
+# ==================================================
+# 4. ANALYSIS SCOPE
+# ==================================================
+START_YEAR: 2021
+END_YEAR: 2025
+TOP_N: 10
+OUTPUT_LANGUAGE: "Traditional Chinese (Taiwan)"
+DOCUMENT_TYPE_SCOPE: "ALL_AVAILABLE"
+
+# ==================================================
+# 5. CORE MODULE SWITCHES
+# ==================================================
+INCLUDE_CAREER_OVERVIEW: true
+INCLUDE_AUTHORSHIP_ANALYSIS: true
+INCLUDE_COLLABORATION_ANALYSIS: true
+INCLUDE_RESEARCH_THEME_ANALYSIS: true
+INCLUDE_AFFILIATION_SPECIFIC_ANALYSIS: true
+INCLUDE_EVIDENCE_GAP_ANALYSIS: true
+
+# ==================================================
+# 6. MODE-SPECIFIC MODULE SWITCHES
+# ==================================================
+INCLUDE_SELF_EVALUATION_SUPPORT: true
+INCLUDE_DEPARTMENT_ALIGNMENT: true
+INCLUDE_DEPARTMENT_RESEARCH_CONTEXT: true
+# 自評與應聘模組只在符合 ANALYSIS_MODE 時執行
+
+# ==================================================
+# 7. OPTIONAL RESEARCH-CONTEXT BENCHMARKS
+# ==================================================
+INCLUDE_BENCHMARK: false
+BENCHMARK_1: ""
+BENCHMARK_2: ""
+BENCHMARK_3: ""
+BENCHMARK_4: ""
+# 用於比較研究環境／學術單位，非其他應聘者排名
+
+# ==================================================
+# 8. BIBLIOGRAPHY
+# ==================================================
+INCLUDE_REFERENCES: true
+INCLUDE_DOI: true
+REFERENCE_STYLE: "APA 7th edition"
+```
+
+---
+
+# PART I. GLOBAL EXECUTION & QUALITY RULES
+
+## A. Global Variables and Module Logic
+
+1. 將上述 GLOBAL PARAMETERS 視為**唯一參數來源**。本文中形如 `{{START_YEAR}}` 的變數引用，必須代入其對應值。不得在正文使用固定年份或假設單位名稱。
+2. `ANALYSIS_MODE` 僅接受 `FACULTY_SELF_REVIEW` 或 `APPLICANT_RESEARCH_REVIEW`；其他值須要求修正，不能自行改成其中之一。
+3. `RESEARCHER_NAME_EN`、`WOS_RESEARCHER_ID`、`ORCID` 至少須有一項非空白識別資訊；若均空白，請明確要求提供識別資訊，**不執行或捏造研究者分析**。
+4. 功能開關 `true` 才執行對應模組；`false` 略過。未啟用模組不得出現在正式報告目錄。啟用但資料不可取得時，應說明缺口而非生成預測數據。
+5. `INCLUDE_SELF_EVALUATION_SUPPORT` 僅在 `FACULTY_SELF_REVIEW` 模式下生效；應聘模式不得生成第一人稱教師自評或暗示其已任職於目標系所。
+6. `INCLUDE_DEPARTMENT_ALIGNMENT` 僅在 `APPLICANT_RESEARCH_REVIEW` 模式下生效；若研究者／系所資料不足，應限制為可確認的主題對照，不得推測匹配度。
+7. `INCLUDE_EVIDENCE_GAP_ANALYSIS = false` 時，不產出獨立的研究表現缺口、弱項或發展問題清單；仍保留必要的資料限制與不確定性說明。
+8. `INCLUDE_DEPARTMENT_RESEARCH_CONTEXT` 允許 RI 查詢**指定** `{{INSTITUTION}} / {{COLLEGE}} / {{DEPARTMENT}}` 的 WoS Entity。若不能取得準確系所層級研究集合，應明示限制，不得以學院或全校資料直接替代。
+9. `INCLUDE_AFFILIATION_SPECIFIC_ANALYSIS` 僅在可確認論文發表時的相關機構歸屬時執行；不得把作者所有歷史成果視為目標系所成果。
+10. `INCLUDE_BENCHMARK` 僅比較明確填寫的 1–4 個學術機構／系所研究環境；空字串略過；全空白時報告未提供比較單位。不得自行新增或以其他應聘者當比較基準。
+11. `INCLUDE_REFERENCES = false` 時不生成完整 APA References；`INCLUDE_DOI = false` 時不要求 DOI；但所有具名文獻仍須可追溯到 WoS 記錄。
+12. 全部正式報告以 `{{OUTPUT_LANGUAGE}}` 撰寫。不要在報告內顯示 `INCLUDE_XXX = true` 等控制指令。
+
+## B. Time and Scope Consistency
+
+1. **Selected Period Analysis** 僅使用 `{{START_YEAR}}–{{END_YEAR}}` 出版年度。所有年度表格、Top N、個人貢獻與合作趨勢，除非特別標明 Career Overview，均使用此期間。
+2. **Career Overview** 為另外標示的研究生涯視角：僅在功能啟用且 RI 能取得可靠作者身分與資料範圍時提供。Career Overview 與 Selected Period 的 Documents、Times Cited、h-index 等指標不得混放同一欄或偷換分母。
+3. 區分出版年度、Early Access 年、WoS 索引日期與資料擷取日期。已結束的年份不能說「年度尚未結束」；可合理標示索引延遲或 Early Access 歸屬，但不能將其當成已證實原因。
+4. Citation window 需依**實際出版與資料擷取時間間隔**判斷。近期原始引用較少不等於研究影響力低；CNCI 等標準化指標亦需考慮小樣本及引用時間不確定性。
+5. 若分析期間只有一年或年度資料不足，不得硬分前期／中期／近期；期間較長時可依實際證據動態分期。
+6. `DOCUMENT_TYPE_SCOPE = "ALL_AVAILABLE"` 表示不預先排除 WoS 可取得的文獻類型；請揭露實際類型（如 Article、Review、Proceedings Paper）。若不同指標採不同 eligible-document 範圍，須說明。
+
+## C. Researcher Identity and Publication Attribution — Mandatory Gate
+
+執行所有計量分析前，先完成研究者身分辨識及文獻集合核對：
+
+1. 搜尋英文姓名 `{{RESEARCHER_NAME_EN}}`、可確認的姓名變體 `{{RESEARCHER_NAME_VARIANTS}}`，並檢查 `{{WOS_RESEARCHER_ID}}` 與 `{{ORCID}}` 所對應的 WoS 研究者資料。
+2. **不得只依英文姓名相同就合併不同作者的成果**。綜合姓名、研究主題、共同作者、歷史機構、作者紀錄、識別碼與實際論文來判斷；不可把猜測當成身分證明。
+3. 若 ORCID、ResearcherID 或姓名指向互相衝突的研究者或文獻集合，不得自行選一方作為確定答案。列出衝突與待確認部分，僅分析可安全歸屬的成果。
+4. 區分「使用者提供識別碼」、「WoS 對應作者紀錄」、「可確認的研究者資料」與「本人已驗證或認領」。**手動填入 ORCID 或 ResearcherID 不代表已完成本人身分認證**。
+5. `CURRENT_AFFILIATION_HINT` 是身分辨識線索，並非已驗證之現職機構；`{{INSTITUTION}} / {{DEPARTMENT}}` 在應聘模式是**應聘目標單位**，不得用來篩選或假定應聘者現職歸屬。
+6. 列出納入的 WoS 文獻集合、時間與指標口徑；若作者紀錄包含非 WoS Core Collection 來源，必須說明差異，不得混算。
+7. 如果無法可靠辨識作者，必須停止研究績效與系所對照的確定性結論，提供可讓使用者核對的候選作者紀錄及不足資訊。
+
+## D. Bibliometric Interpretation and Evidence Quality
+
+1. 區分 **Productivity、Raw Citation Impact、Normalized Impact、High-Impact Papers、Authorship／Collaboration**；不以單一指標判定研究品質或個人能力。
+2. CNCI、JNCI 的基準 1、Top 10% 與 Top 1% 的全球期望比例可用於正規化解讀，但不能替代同領域專業審查。
+3. 各比例指標（Top 10%、Top 1%、Q1 JIF、International Collaboration、First／Corresponding Author）須盡可能說明**分子、適用分母及 eligible document rules**；若原工具不提供分母，保持其原始數值並標記口徑未確認，不得直接以 Total Documents 重新計算。
+4. 全球整體的合作比例、JIF Q1 占比或其他參考值，僅在比較集合、領域及文件類型可比時才可作為相對評估基準。未經驗證，不得直接推斷個別研究者的弱點。
+5. 研究者跨學科、不同生涯階段、不同共著慣例或不同任職機構時，不得直接以原始引用數、h-index 或第一作者比例作優劣排名。
+6. 對小樣本、個別高 CNCI 論文、少數合作成果，標示 Evidence Confidence（Strong / Moderate / Limited）或以文字說明證據限制；不把這些標記當成研究者或求職者評分。
+7. 區分 `Confirmed Zero`、`Not Available`、`Not Applicable`、`Unverified Value`。遇到 `Times Cited without Self-Citations = 0` 但總引用大於零等可疑輸出，先標為待驗證，不據此解讀。
+8. WoS 不能完整衡量所有學科成果，尤其非索引成果、專書、中文著作、教學、計畫、軟體、專利及實務貢獻。不得將未收錄等同沒有成果。
+9. 所有影響力解讀避免將相關性推為因果關係，不聲稱某項研究策略保證增加 CNCI、被引或聘任後成果。
+
+## E. Employment-Context Guardrails — Mandatory in Applicant Mode
+
+`APPLICANT_RESEARCH_REVIEW` 的用途是**整理學術研究證據**，供系所委員在完整程序中參考，**不是自動化聘任評分或決策**。請遵守：
+
+1. 不生成「應錄取／不應錄取」「適任／不適任」「推薦聘任」「候選人排名」「適配分數」或聘任成功率。
+2. 可比較研究者的**可確認研究主題、方法、代表成果**與系所已知研究方向之**重疊、互補、拓展與證據缺口**，但不得把主題相符直接解釋為聘任適合度。
+3. 當 `POSITION_RESEARCH_FOCUS` 或 `DEPARTMENT_STRATEGIC_GOALS` 為空白時，不得自行推測正式徵聘條件或發展目標。最多分析其與 WoS 可取得之系所**既有研究組合**的關聯。
+4. 不推論人格、工作態度、教學能力、團隊合作表現、離職風險、年齡、性別、健康、國籍等個人特徵或受保護資料。
+5. 所有定性判讀均可供學術委員**進一步核查**，包括研究工作內容、作者實質貢獻、教學示範、研究計畫、推薦信與其他正式資料；不得由 RI 自行替代。
+
+---
+
+# PART II. COMMON RESEARCH ANALYSIS MODULES
+
+分析對象：`{{RESEARCHER_NAME_EN}}`／`{{WOS_RESEARCHER_ID}}`／`{{ORCID}}`
+
+指定期間：`{{START_YEAR}}–{{END_YEAR}}`
+
+## 01. Researcher Identity & Data Scope
+
+提供：
+
+- Input Name / Name Variants
+- WoS ResearcherID / ORCID and linkage status
+- Author Record / Researcher Profile adopted
+- Identity Confidence and unresolved ambiguities
+- Current / Historical Affiliations **only if verified**
+- Actual WoS Data Source, Document Types, Selected Period
+- Publication attribution rules, Early Access rule, data retrieval date
+- Whether claimed or unclaimed authorship can be confirmed
+
+分開列示：Confirmed Publications / Potentially Ambiguous Publications / Excluded Records（僅在資料可取得時）。不要為了表格完整而捏造排除筆數。
+
+## 02. Overall Research Performance — Selected Period
+
+請盡可能提供：
+
+Documents; Times Cited; Times Cited without Self-Citations（如有效）；Citations per Paper; Documents Cited %; CNCI; JNCI; Top 10% Papers and %; Top 1% Papers and %; Average Percentile（如可得）；Highly Cited Papers; Hot Papers; h-index within scope（若可定義）；Q1 JIF Papers and %；International Collaboration Papers and %。
+
+使用四組呈現：
+
+A. Research Productivity
+B. Raw Citation Impact
+C. Normalized Research Impact
+D. High-Impact Publications
+
+每項註明可確認的文獻範圍及分母。h-index 請標明是所選集合或職涯集合，不得混用。加上簡短 Evidence-based Interpretation，不給個人總分。
+
+## 03. Career Overview — Optional and Separately Scoped
+
+僅於 `INCLUDE_CAREER_OVERVIEW = true` 且身份與作者資料可靠時執行。
+
+呈現可取得的最早／最新出版年、職涯主要研究領域、長期出版與研究發展輪廓，以及與 Selected Period 的差異。若可取得可列 career documents、citations、h-index，**單獨成表並說明資料庫與時間口徑**。
+
+不得把 Career Total 說成目前單位成果，也不得將 Selected Period 以外的代表作計入該期間的 Top N。
+
+## 04. Annual Research Productivity & Impact Trend
+
+按 `{{START_YEAR}}–{{END_YEAR}}` 列示：Year、Documents、Times Cited、CNCI、JNCI、Top 10% Count / %、Top 1% Count（若可得）、Q1 JIF %（若可得）、International Collaboration %（若可得）。
+
+分析持續性、轉折點、近期研究主題／影響力變化；說明 citation window 與索引延遲的不同影響，不對年度下降推定個人因素。
+
+## 05. Research Specialization & Expertise
+
+列出前 `{{TOP_N}}` 個可確認的 WoS Research Areas / Categories／Citation Topics（需標記類型，不得混成同一分類）。
+
+包含 Documents、Times Cited、CNCI、Top 10% Count / %（可得時）。
+
+歸納 3–5 個 Core Research Themes / Methodological Expertise，說明可驗證的研究問題、方法／技術、代表作、主題連續性；不得僅依文章標題推測具體發現或個人主導程度。
+
+## 06. Research Theme Evolution
+
+僅於 `INCLUDE_RESEARCH_THEME_ANALYSIS = true` 時執行。
+
+依分析年數與實際成果動態設定 Early / Transition / Recent 期間；必要時區分 established、emerging、interdisciplinary 主題。可使用 RI 可取得的 Citation Topics／Research Front 資訊（如有），但需標明其來源及資料時間，不得假設不同資料系列同步更新。
+
+每項重要主題以論文、年度分布與實際研究指標支持；不要因最新只有一篇高 CNCI 論文就宣稱已形成成熟專長。
+
+## 07. Authorship & Research Contributions
+
+僅於 `INCLUDE_AUTHORSHIP_ANALYSIS = true` 時執行。
+
+如 RI 可得，整理 First Author、Corresponding Author、Single Author、Co-author / Collaborative Papers 的數量與比例，並註明文獻類型、適用分母、作者角色標記的可得性。
+
+辨識研究者在**哪些具名代表作**中的作者角色可以確認。除非論文或可信作者貢獻聲明有證據，否則不得從作者順序推測實質貢獻或研究領導力。不同學科之作者排序慣例不等同。
+
+## 08. Representative Publications & Signature Contributions
+
+列出指定期間內前 `{{TOP_N}}` 篇代表作，混合考量 Times Cited、CNCI、Top 10%／Top 1%、出版年份、研究主題代表性。
+
+提供：Title、Authors、Year、Source、Document Type、Times Cited、CNCI、Percentile Status、DOI（如啟用且可確認）、**該研究者可確認的作者身分／角色**（如有）。
+
+分類：Most Cited；Highest CNCI；Highly Influential；Recent High-Potential；Interdisciplinary／Distinctive Contributions。分類允許重複，但應避免在 References 重複列同篇文獻。
+
+每項 Signature Contribution 以「研究問題 → 可確認研究內容／方法 → 學術特色 → 計量證據 → 限制」撰寫 1 段可供引用的 Achievement Statement。若無摘要／全文或可靠研究內容，不能編造實驗結果、技術效果或社會影響。
+
+## 09. Publication Sources
+
+列出前 `{{TOP_N}}` 個來源：Source、Documents、Times Cited、CNCI、Top 10% %、JIF／JIF Quartile（適用且可得時）。
+
+區分高量與高影響來源；JIF/Q1 為期刊層級背景資訊，不等於個別論文品質，更不是研究者聘任分數。
+
+## 10. Research Collaboration & Networks
+
+僅於 `INCLUDE_COLLABORATION_ANALYSIS = true` 時執行。
+
+整理 International Collaboration Count / %，可得時比較不同合作類型的 CNCI，列出主要合作國家／地區、海外機構、共同作者及研究主題；**排除當事人所屬目標機構本身，並將本國機構與海外機構分開**。
+
+長期合作需有跨年度重複共著或其他可確認連續性資料；小樣本不宣稱長期穩定網絡。合作類型差異不能推論合作造成的效果。
+
+## 11. Affiliation-Specific Output — Optional
+
+僅於 `INCLUDE_AFFILIATION_SPECIFIC_ANALYSIS = true` 且有可靠原始作者地址或期間機構對應時執行。
+
+分開報告：
+
+A. Researcher's All Verified Selected-Period Publications
+B. Publications Verifiably Attributable to `{{INSTITUTION}} / {{COLLEGE}} / {{DEPARTMENT}}` (Faculty mode)
+C. Publications Attributable to Previously Verified Affiliations (Applicant mode, if useful)
+
+比較 Documents、CNCI、Top 10% 等可得指標，明確揭露口徑。**應聘模式中的目標系所不得被誤當作應聘者的現任所屬單位**。如果 B 或 C 沒有可靠地址證據，標示資料不足，不得以姓名／目前主要機構推估論文歸屬。
+
+## 12. Research Achievements & Optional Evidence Gaps
+
+為本研究者整理：
+
+- 3–5 個有具體論文／研究主題證據支持的學術貢獻或研究特色。
+- **僅當 `INCLUDE_EVIDENCE_GAP_ANALYSIS = true`**：整理 3–5 個資料上可觀察的發展問題或研究證據缺口（足夠資料時）；區分正規化指標基準差異、年度趨勢、尚待查證的外部背景。
+- 不論開關設定，都須說明研究者身分、期刊與文獻涵蓋、不同學科慣例、小樣本、高引用單篇、未收錄成果之方法限制。
+
+不得用「研究能力不足」「沒有發展潛力」等個人定性結論代替計量事實。將 Evidence Confidence 僅用於**證據完整程度**，非個人研究能力評分。
+
+---
+
+# PART III. MODE A — FACULTY SELF-ASSESSMENT
+
+**執行條件：** `ANALYSIS_MODE = "FACULTY_SELF_REVIEW"` 且 `INCLUDE_SELF_EVALUATION_SUPPORT = true`。
+
+## 13A. Faculty Research Self-Evaluation Brief
+
+依《國立陽明交通大學自主辦理系所品質保證實施計畫》的研究相關需求，產出供教師自行確認的研究成果摘要。**不要求 RI 讀取外部官方網站或校務文件**。僅參照內建原則：研究特色發展、學術研究、國際研究合作（若啟用），以及「現況描述／特色與成就／問題與困難／改善方向」的敘事方式。
+
+請包含：
+
+1. Research Profile：研究者主要研究專長、指定期間與可確認的職涯發展輪廓。
+2. Research Achievements：3–5 個主要學術貢獻，附代表文獻、引用指標與 DOI。
+3. Research Development：年度與主題演變、跨域合作及近年成果（僅使用具體證據）。
+4. Research Gaps & Limitations：**僅在 `INCLUDE_EVIDENCE_GAP_ANALYSIS = true` 時**整理可觀察的研究表現落差；索引與資料涵蓋等必要方法限制無論開關均應保留；不得推論教學、服務或任職表現。
+5. Self-Evaluation Draft：分成「現況描述」「研究特色與成果」「尚待確認的問題／發展空間」「後續研究方向（供本人考慮）」四段，附資料來源提示。
+6. Evidence Checklist：列出可直接採用的 WoS / RI 證據、須由教師確認的著作與作者角色，以及 WoS 無法提供的教學／計畫／指導學生／社會服務等補充資料。
+
+此為**教師自評參考草稿**，不是本人陳述、正式考核或自主品保通過證明。不得以第一人稱替研究者承諾尚未提出的發展計畫。
+
+---
+
+# PART IV. MODE B — APPLICANT RESEARCH EVIDENCE REVIEW
+
+**執行條件：** `ANALYSIS_MODE = "APPLICANT_RESEARCH_REVIEW"`。
+
+## 13B. Applicant Research Evidence Dossier
+
+整合共同模組，為系所學術審查提供研究證據，至少包含：
+
+- Research Identity & Attribution: 作者身分、實際可確認的文獻集合、排除或待釐清資訊。
+- Research Productivity & Normalized Impact: 指定期間與分開標示的職涯概覽。
+- Research Specialization & Methods: 研究主題、方法、代表論文及連續性。
+- Signature Scholarly Contributions: 可核查的主要學術貢獻、文章 DOI 與相關限制。
+- Collaboration: 共著、合作領域與機構（若啟用）。
+- Expert Review Questions: 需要由學術審查委員核對的研究內容、實質貢獻、教學與其他正式資料。
+
+報告標題應稱 **Applicant Research Evidence Dossier**，不是「聘任評分表」或「錄取建議書」。
+
+## 14B. Researcher–Department Research Alignment (Evidence Only)
+
+僅於 `INCLUDE_DEPARTMENT_ALIGNMENT = true` 時執行。
+
+### Step 1. Identify the Department Research Context
+
+如 `INCLUDE_DEPARTMENT_RESEARCH_CONTEXT = true`，先嘗試查詢以下目標系所的 RI Department Entity：
+
+- Institution: `{{INSTITUTION}}`
+- College: `{{COLLEGE}}`
+- Department: `{{DEPARTMENT}}`
+- Same research period: `{{START_YEAR}}–{{END_YEAR}}`
+
+取得可核查的系所 Research Areas、Citation Topics、3–5 個代表研究主軸及對應論文（若資料可得）。**不能辨識系所 Entity 時，不得以整個學院／全校的成果替代。**
+
+如果研究者或系所使用不同時間段／不同 Document Types，需說明不可直接比較之處。
+
+### Step 2. Distinguish Declared Goals from Observed Topics
+
+- `DEPARTMENT_STRATEGIC_GOALS`：僅為使用者明確提供的系所研究發展方向；空白表示**正式目標未知**。
+- `POSITION_RESEARCH_FOCUS`：僅為使用者明確提供的徵聘研究專長；空白表示**正式徵聘方向未知**。
+- RI 得到的 Department Research Topics：僅代表**已發表成果之研究組合**，不得直接當成正式發展策略或徵聘條件。
+
+### Step 3. Produce Research Topic Correspondence Matrix
+
+以**學術主題對照而非個人適任性評分**的方式整理：
+
+| Dimension | Applicant's Verifiable Research Evidence | Department's Observed Research Context / Declared Focus | Relationship and Evidence | Limitations |
+|---|---|---|---|---|
+| Research Overlap | 具體主題與 DOI | 既有主題／明確提供方向 | 哪些研究問題或方法有交集 | 不表示必然有合作意願 |
+| Research Complementarity | 可驗證方法與研究成果 | 既有專長 | 可能提供不同或互補的技術／視角 | 需專家審查研究內容 |
+| Research Expansion | 現有研究主題 | 系所較少涉及的已發表主題 | 可供討論的延伸領域 | 「既有成果少」不等於系所缺人才 |
+| Unverified Context | 無法核實的身分／內容／單位目標 | 未提供資訊 | 無法作出可靠對照 | 列出需要系所提供的資料 |
+
+不得產生單一「符合度百分比」、星級、錄取排序或總分。避免「應聘者補強系所弱點」的斷言；僅可寫「其具名研究成果涉及某主題，該主題在已觀察系所 WoS 研究組合中較少出現」，並說明資料限制。
+
+### Step 4. Questions for Academic Review Committee
+
+提供 3–6 個**可由委員進一步確認的學術問題**，例如研究者在代表作中的實質貢獻、研究方法與系所研究主題的具體銜接、近期研究計畫、合作可行性，以及 WoS 未涵蓋的學術成果。不得提出聘任決議或猜測未公開個人資訊。
+
+---
+
+# PART V. OPTIONAL RESEARCH-CONTEXT BENCHMARK
+
+## 15. Benchmark Research Environment — Optional
+
+僅在 `INCLUDE_BENCHMARK = true` 時執行。
+
+Benchmark 僅使用 `{{BENCHMARK_1}}` 至 `{{BENCHMARK_4}}` 非空白的**學術機構或系所**。不得自行新增，不得改成比較其他候選人或替應聘者排名。
+
+逐一進行 Entity Normalization，並以相同 `{{START_YEAR}}–{{END_YEAR}}`、盡可能一致的 Document Types 和指標口徑呈現：Documents、CNCI、Top 10% 比例、主要學科與 Research Themes、國際研究合作（如可得）。
+
+**比較目的僅在提供學術環境與研究領域背景**，不能用不同規模的系所總論文量來評判個人適任性。若資料不足或單位層級不同，明確加註。
+
+---
+
+# PART VI. APA 7TH REFERENCES & DOI
+
+## 16. Scholarly References and Bibliographic Validation
+
+僅在 `INCLUDE_REFERENCES = true` 時執行。
+
+參考文獻至少包含：代表性論文、Signature Achievements 中具名使用的論文，以及對研究主題／系所主題對照有直接支持作用的具名學術文獻。**不需要羅列研究者全部 WoS 文獻**。
+
+1. 使用 `{{REFERENCE_STYLE}}`。作者依原始順序；期刊文獻依 APA 第七版提供：作者、年份、sentence-case 論文題名、正式期刊名稱、volume(issue)、頁碼／文章編號及 DOI（可確認時）。
+2. 參考文獻按第一作者姓氏字母順序排列，**不編號**。APA 7th：作者 20 人以內全部列出；21 人以上列前 19 位、刪節號及末位作者；**不可在參考文獻中使用 `et al.` 代替作者清單**。
+3. DOI 若啟用，只使用可驗證的標識，以 `https://doi.org/xxxxx` 輸出；不得由文章標題猜測 DOI，亦不得自行補造卷期頁碼或作者。
+4. Early Access 與正式出版年份有差異時，以可核對的正式書目資料製作 APA 引用，並說明與 WoS 指標分析年可能不同的情況。
+5. 無法核實某書目欄位時應註記缺漏；對作者順序／標題／DOI 相互矛盾者應標記待確認，不得默默選一個版本。
+6. 比對 Representative Publications、Signature Achievements、Researcher–Department Alignment 表及 References 之間的 Title、Authors、Year、Source、DOI 是否一致。
+
+---
+
+# PART VII. FINAL OUTPUT SPECIFICATION
+
+## Common Output — Always
+
+1. **Executive Summary**（聚焦重要學術發現及資料界線，不設僵化字數上限）
+2. **Researcher Identity & Data Scope**
+3. **Overall Research Performance — Selected Period**
+4. **Career Overview**（如啟用且可取得）
+5. **Annual Research Trend**
+6. **Research Specialization & Research Theme Evolution**（主題演化如啟用）
+7. **Authorship & Research Contributions**（如啟用）
+8. **Representative Publications & Signature Achievements**
+9. **Publication Sources**
+10. **Research Collaboration & Networks**（如啟用）
+11. **Affiliation-Specific Research Output**（如啟用且可取得）
+12. **Research Achievements & Optional Evidence Gaps**
+
+## Mode A — Faculty Self-Review
+
+13A. **Faculty Research Self-Evaluation Brief**（功能啟用時）
+
+## Mode B — Applicant Research Review
+
+13B. **Applicant Research Evidence Dossier**
+14B. **Researcher–Department Research Alignment**（如啟用且可取得）
+
+## Optional and Closing Sections
+
+15. **Research-Context Benchmark**（如啟用）
+16. **References — APA 7th & DOI**（如啟用）
+17. **Data Sources, Retrieval Date & Limitations**
+
+### Reporting Format
+
+- 選用模組未啟用時不要出現該章節，不要顯示開關語句。
+- 重要研究指標及主題對照盡量使用表格。每個表格後提供重點判讀，且數據與論述需可回溯到 RI 查詢或具名論文。
+- 主要判讀區分 **Data / Evidence、Interpretation、Limitations**。如果提供研究發展方向，請以「可供研究者／系所考慮的議題」表述，不得宣稱有必然效果。
+- 若無外部完整研究內容，不得虛構論文摘要、研究結論、作者實質貢獻、學術獎項、計畫或社會影響。
+- 在自評模式中，清楚區分**研究者全部成果**、**指定期間成果**和**確認可歸屬於目標系所的成果**。
+- 在應聘模式中，清楚區分**應聘者原有研究成果**、**目標系所的已觀察研究組合**及**使用者正式提供的徵聘方向／發展目標**。不給錄取或不錄取結論。
+- 資料不足時要明確指出缺口，必要時提供核對清單，不為了完整輸出而生成無根據內容。
+
+**最終任務**：以 WoS Research Intelligence 的可驗證研究成果為基礎，對現職教師提供有用的自評研究證據；對應聘者提供可供學術委員審閱的研究成果與系所研究主題對照材料。維持研究資料可追溯、作者身份與成果歸屬清楚、APA／DOI 一致，並避免將研究計量工具誤用為人事聘任決策系統。

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="免寫程式、免修改 YAML，快速製作 WoS Research Intelligence 學院、系所及研究者分析 Prompt。" />
+  <meta name="theme-color" content="#f7f8fc" />
+  <title>Research Intelligence Prompt Builder</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script src="assets/templates.js" defer></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到主要內容</a>
+  <div class="site-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="Research Intelligence Prompt Builder">
+        <span class="brand-icon" aria-hidden="true">R<span class="brand-dot">·</span>I</span>
+        <span class="brand-copy"><strong>RI Prompt Builder</strong><small>Research intelligence toolkit</small></span>
+      </div>
+      <div class="topbar-meta"><span class="privacy-indicator"><span class="privacy-led"></span>瀏覽器本機產生</span><a class="help-link" href="#help">使用說明</a></div>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="eyebrow"><span class="eyebrow-line"></span> WEB OF SCIENCE · RESEARCH INTELLIGENCE</div>
+        <h1 id="hero-title">讓學術研究分析，<br><span>從選擇和填寫開始。</span></h1>
+        <p>選擇學院、系所或研究者分析，填入必要資訊，即可取得可直接貼入 WoS Research Intelligence 的完整 Prompt。無需編輯程式或原始模板。</p>
+      </section>
+      <section aria-labelledby="type-title" class="type-section">
+        <div class="section-heading"><div><p class="step-kicker">STEP 01</p><h2 id="type-title">選擇分析層級</h2></div><p class="section-subtitle">三種分析架構，依需求顯示不同欄位。</p></div>
+        <div class="type-grid" id="type-grid" role="group" aria-label="Prompt 類型">
+          <button type="button" class="type-card selected" data-type="college" aria-pressed="true">
+            <span class="type-top"><span class="type-index">01 / COLLEGE</span><span class="selected-dot" aria-hidden="true"></span></span>
+            <span class="type-title">學院研究分析</span>
+            <span class="type-desc">整體研究績效、領域特色、研究者貢獻與比較分析。</span>
+            <span class="type-version">College · v1.3</span>
+          </button>
+          <button type="button" class="type-card" data-type="department" aria-pressed="false">
+            <span class="type-top"><span class="type-index">02 / DEPARTMENT</span><span class="selected-dot" aria-hidden="true"></span></span>
+            <span class="type-title">系所研究分析</span>
+            <span class="type-desc">研究能力、成果展示、自主品保佐證及發展缺口。</span>
+            <span class="type-version">Department · v1.2.2</span>
+          </button>
+          <button type="button" class="type-card" data-type="researcher" aria-pressed="false">
+            <span class="type-top"><span class="type-index">03 / RESEARCHER</span><span class="selected-dot" aria-hidden="true"></span></span>
+            <span class="type-title">研究者學術成果</span>
+            <span class="type-desc">教師自評或應聘研究證據分析，支援 ORCID 身分辨識。</span>
+            <span class="type-version">Researcher · v1.0</span>
+          </button>
+        </div>
+      </section>
+      <div class="workspace">
+        <section class="workspace-form" aria-labelledby="form-title">
+          <div class="section-heading form-section-title"><div><p class="step-kicker">STEP 02</p><h2 id="form-title">填寫分析資訊</h2></div><span class="tag-optional">* 為必要欄位</span></div>
+          <div class="tip-banner"><span class="tip-icon" aria-hidden="true">EN</span><div><strong>請優先填寫英文名稱</strong><p>學校、學院、系所及研究者姓名建議採用正式英文名稱，以提高 WoS 的實體辨識準確度。中文也可填寫，但可能需要 RI 再做名稱比對。</p></div></div>
+          <div id="validation" class="validation" aria-live="polite" hidden></div>
+          <form id="prompt-form" novalidate></form>
+          <div class="form-actions">
+            <button id="generate-btn" type="button" class="btn btn-primary"><span>產生完整 Prompt</span><span class="arrow-icon" aria-hidden="true">↗</span></button>
+            <button id="reset-btn" type="button" class="btn btn-quiet">恢復模板預設</button>
+          </div>
+          <p class="disclaimer-small">系統僅根據你填寫的欄位替換原始 Prompt，不會查詢 WoS、驗證研究者身分或替你執行 RI 分析。</p>
+        </section>
+        <aside class="workspace-side" aria-label="產出說明與預覽">
+          <div class="summary-panel">
+            <div class="summary-head"><span class="mini-eyebrow">YOUR SETUP</span><span class="pill-neutral" id="summary-version">v1.3</span></div>
+            <h3 id="summary-title">學院研究分析</h3>
+            <div class="summary-rows" id="summary-rows"></div>
+            <div class="summary-divider"></div>
+            <div id="summary-status" class="summary-status">填寫完畢後，按下「產生完整 Prompt」。</div>
+          </div>
+          <div class="side-note"><span class="note-symbol" aria-hidden="true">ⓘ</span><p>完整分析規則已內建於各原始模板。網頁只變更參數與引用值，不精簡原始分析內容。</p></div>
+        </aside>
+      </div>
+      <section class="output-section" id="output-section" aria-labelledby="output-title" hidden>
+        <div class="section-heading"><div><p class="step-kicker">STEP 03</p><h2 id="output-title">完整 Prompt 已產生</h2></div><p class="section-subtitle" id="output-meta"></p></div>
+        <div class="output-toolbar"><span class="output-filename" id="output-filename"></span><div class="output-buttons"><button type="button" class="btn btn-small btn-secondary" id="copy-btn">複製全文</button><button type="button" class="btn btn-small btn-secondary" id="download-txt-btn">下載 .txt</button><button type="button" class="btn btn-small btn-secondary" id="download-md-btn">下載 .md</button></div></div>
+        <textarea id="output-text" class="output-text" spellcheck="false" aria-label="產生的完整 Prompt" readonly></textarea>
+        <div class="output-bottom"><span>請將全文貼入 WoS Research Intelligence 進行分析。</span><span id="copy-status" role="status" aria-live="polite"></span></div>
+      </section>
+      <section id="help" class="help-section" aria-labelledby="help-title">
+        <div class="section-heading"><div><p class="step-kicker">QUICK GUIDE</p><h2 id="help-title">使用說明</h2></div></div>
+        <div class="help-grid">
+          <div class="help-item"><strong>英文名稱優先</strong><p>使用校方官方英文名；如不確定，可先填你知道的名稱，再由 RI 執行 Entity Normalization。</p></div>
+          <div class="help-item"><strong>ORCID 與 ResearcherID</strong><p>研究者分析至少提供英文姓名、ORCID 或 WoS ResearcherID 之一。識別碼可協助消歧，但不代表已驗證本人。</p></div>
+          <div class="help-item"><strong>Benchmark 最多四組</strong><p>僅在啟用比較分析時顯示欄位；沒有比較需求就關閉，避免不必要的資料分析。</p></div>
+          <div class="help-item"><strong>隱私與資料限制</strong><p>輸入內容只在本頁瀏覽器記憶體處理；不自動上傳、不儲存。請勿將機密審查資料填入公開共用的裝置。</p></div>
+        </div>
+      </section>
+    </main>
+    <footer><span>RI Prompt Builder · An independent prompt assembly tool</span><span>依上傳模板完整組合 · 不隸屬 Clarivate</span></footer>
+  </div>
+</body>
+</html>
